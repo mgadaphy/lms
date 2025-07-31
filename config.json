@@ -1,0 +1,13 @@
+{
+  "version": "8.2.0",
+  "min": "8.0.0",
+  "release_date": "19/02/2025",
+  "migrations": [
+    "Modules/NotificationSetup/Database/Migrations/2024_12_24_134650_AddMissingNotificaitonRolePermission.php",
+    "Modules/Setting/Database/Migrations/2025_01_22_104537_add_approval_activaiton_setting.php"
+  ],
+  "url": "https://www.aorasoft.com/",
+  "notes": "This is a bug fixing & new feature update."
+}
+
+
