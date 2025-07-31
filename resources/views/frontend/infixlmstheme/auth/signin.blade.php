@@ -33,6 +33,9 @@
                 </button>
             </div>
 
+            <!-- Success Messages Container -->
+            <div id="success-container" class="success-container" style="display: none;"></div>
+
             <!-- Error Messages Container -->
             <div id="error-container" class="error-container" style="display: none;">
                 <div id="error-messages" class="error-messages"></div>
@@ -446,6 +449,55 @@
 {!! Toastr::message() !!}
 
 <style>
+/* Success message styles */
+.success-container {
+    transition: all 0.3s ease;
+}
+
+.alert-success {
+    color: #0f5132;
+    background-color: #d1e7dd;
+    border: 1px solid #badbcc;
+    border-radius: 0.5rem;
+    padding: 1rem 1.25rem;
+    margin: 0 0 1.5rem 0;
+    display: flex;
+    align-items: flex-start;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.alert-success i {
+    font-size: 1.25rem;
+    margin-top: 0.15rem;
+    margin-right: 0.75rem;
+    color: #0f5132;
+}
+
+.alert-success div {
+    flex: 1;
+}
+
+.error-container {
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 0.25rem;
+    color: #721c24;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+}
+
+.error-container ul {
+    margin-bottom: 0;
+    padding-left: 1.5rem;
+}
+
+.error-container li {
+    margin-bottom: 0.25rem;
+}
+
+.error-container li:last-child {
+    margin-bottom: 0;
+}
 .modern-signin-wrapper {
     min-height: 100vh;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -1201,7 +1253,10 @@ function showErrors(errors) {
     const errorContainer = document.getElementById('error-container');
     const errorMessages = document.getElementById('error-messages');
     
-    let errorHtml = '<ul>';
+    // Clear any existing success messages
+    errorMessages.innerHTML = '';
+    
+    let errorHtml = '<ul class="mb-0">';
     for (const [field, messages] of Object.entries(errors)) {
         if (Array.isArray(messages)) {
             messages.forEach(message => {
@@ -1214,11 +1269,16 @@ function showErrors(errors) {
     errorHtml += '</ul>';
     
     errorMessages.innerHTML = errorHtml;
+    errorContainer.className = 'error-container';
     errorContainer.style.display = 'block';
 }
 
 function hideErrors() {
-    document.getElementById('error-container').style.display = 'none';
+    const errorContainer = document.getElementById('error-container');
+    errorContainer.style.display = 'none';
+    errorContainer.className = 'error-container';
+    
+    // Don't hide success messages when hiding errors
 }
 
 // Form submission handling
@@ -1285,33 +1345,79 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     
     // Disable button and show loading state
     submitBtn.disabled = true;
-    submitBtn.textContent = '{{__("common.Registering...")}}';
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> {{__("common.Registering...")}}';
+    
+    // Clear any previous messages
+    const successContainer = document.getElementById('success-container');
+    const errorContainer = document.getElementById('error-container');
+    successContainer.style.display = 'none';
+    errorContainer.style.display = 'none';
     
     fetch('{{route("signin.register")}}', {
         method: 'POST',
         body: formData,
         headers: {
             'X-CSRF-TOKEN': '{{csrf_token()}}',
-            'Accept': 'application/json'
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-Requested-With': 'XMLHttpRequest'
         }
     })
-    .then(response => response.json())
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.json();
+    })
     .then(data => {
         if (data.success) {
-            // Redirect on success
-            window.location.href = data.redirect;
-        } else {
-            // Show errors
-            showErrors(data.errors);
+            // Show success message in green
+            const successHtml = `
+                <div class="alert alert-success d-flex align-items-center" role="alert">
+                    <i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
+                    <div>
+                        <h5 class="alert-heading mb-1">Registration Successful!</h5>
+                        <p class="mb-0">${data.message || 'A verification link has been sent to your email address. Please check your inbox and click the link to verify your account.'}</p>
+                    </div>
+                </div>
+            `;
+            
+            successContainer.innerHTML = successHtml;
+            successContainer.style.display = 'block';
+            
+            // Reset form
+            this.reset();
+            
+            // Re-enable the button with original text
             submitBtn.disabled = false;
-            submitBtn.textContent = originalText;
+            submitBtn.innerHTML = originalText;
+            
+            // Auto-scroll to show the success message
+            successContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Remove any existing login form errors when registration is successful
+            const loginForm = document.getElementById('loginForm');
+            if (loginForm) {
+                loginForm.reset();
+            }
         }
     })
     .catch(error => {
-        console.error('Error:', error);
-        showErrors({general: ['An error occurred. Please try again.']});
+        console.error('Registration error:', error);
+        
+        // Re-enable the button with original text
         submitBtn.disabled = false;
-        submitBtn.textContent = originalText;
+        submitBtn.innerHTML = originalText;
+        
+        // Show error in the error container
+        if (error.errors) {
+            showErrors(error.errors);
+        } else {
+            showErrors({general: [error.message || 'An error occurred during registration. Please try again.']});
+        }
+        
+        // Scroll to show the error message
+        errorContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
 });
 

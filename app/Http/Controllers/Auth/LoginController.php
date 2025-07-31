@@ -699,8 +699,17 @@ class LoginController extends Controller
 
         checkGamification('each_login', 'activity');
         checkGamificationReg();
-        return $this->authenticated($request, $this->guard()->user())
-            ?: redirect()->to($goto);
+        
+        $this->authenticated($request, $this->guard()->user());
+        
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'redirect' => $goto
+            ]);
+        }
+        
+        return redirect()->to($goto);
     }
 
     public function redirectPath()
@@ -931,12 +940,15 @@ class LoginController extends Controller
             return new response(view(theme('pages.maintenance'), compact('maintain')));
         }
 
-        Auth::login($user);
-
+        // Send email verification notification
+        $user->sendEmailVerificationNotification();
+        
+        // Return success message without logging in
         return response()->json([
             'success' => true,
-            'message' => __('Registration successful!'),
-            'redirect' => route('home')
+            'message' => __('A verification link has been sent to your email address. Please check your email to verify your account before logging in.'),
+            'verified' => false,
+            'redirect' => null
         ]);
     }
 
