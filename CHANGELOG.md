@@ -118,4 +118,63 @@
 ### Files Modified
 - `resources/views/frontend/infixlmstheme/auth/signin.blade.php`
 
+---
+
+## [2024-12-19] - Unified Signin/Signup Tabbed Interface
+
+### Added
+- **Unified Authentication Page** - Combined login and registration into single tabbed interface
+  - Created tabbed navigation with "Log In" and "Sign Up" tabs
+  - Integrated both forms into single `/signin` page
+  - Dynamic page title updates based on active tab
+  - JSON error handling for registration form
+  - Modern tab switching with smooth transitions
+
+- **Enhanced LoginController** (`app/Http/Controllers/Auth/LoginController.php`)
+  - Added `register()` method for handling registration requests
+  - Added `registerValidator()` method with comprehensive validation rules
+  - Added `createUser()` method for user creation
+  - Added support for custom fields and organization modules
+  - JSON response handling for AJAX registration
+
+- **New Registration Route** (`routes/tenant.php`)
+  - Added `POST /signin/register` route for registration handling
+  - Route points to `LoginController@register` method
+
+### Modified
+- **Signin Page** (`resources/views/frontend/infixlmstheme/auth/signin.blade.php`)
+  - Complete redesign with tabbed interface
+  - Login form with social login integration
+  - Registration form with all custom fields support
+  - Error container for JSON error display
+  - Responsive design for all devices
+  - Modern styling with gradient backgrounds
+  - Password visibility toggle functionality
+  - Form validation with real-time feedback
+
+### Features
+- **Tab Navigation**: Clean tab switching between login and registration
+- **Dynamic Titles**: Page title updates based on active tab ("Log In" or "Sign Up")
+- **Error Handling**: JSON error responses stored and displayed above forms
+- **Social Login**: Facebook and Google integration in login tab
+- **Custom Fields**: Full support for all registration custom fields
+- **Responsive Design**: Mobile-friendly interface
+- **Modern UI**: Gradient backgrounds, smooth animations, modern styling
+- **Form Validation**: Client-side and server-side validation
+- **reCAPTCHA Support**: Both visible and invisible reCAPTCHA integration
+
+### Technical Details
+- **Tab System**: JavaScript-based tab switching with CSS transitions
+- **AJAX Registration**: Fetch API for registration form submission
+- **Error JSON**: Structured error responses for frontend developers
+- **Custom Fields**: Dynamic field rendering based on `StudentCustomField` settings
+- **Module Support**: Organization, Affiliate, and other module integrations
+- **Validation**: Comprehensive server-side validation with custom field support
+- **User Creation**: Proper role assignment and data handling
+
+### Files Created/Modified
+- `app/Http/Controllers/Auth/LoginController.php` (Enhanced with registration methods)
+- `routes/tenant.php` (Added registration route)
+- `resources/views/frontend/infixlmstheme/auth/signin.blade.php` (Complete redesign)
+
 --- 

@@ -8,6 +8,8 @@ use App\Repositories\UserRepositoryInterface;
 use App\Traits\GoogleAnalytics4;
 use App\Traits\LogoutFromOtherDevice;
 use App\User;
+use App\StudentCustomField;
+use Illuminate\Support\Facades\Validator;
 use App\UserLogin;
 use Brian2694\Toastr\Facades\Toastr;
 use Browser;
@@ -893,6 +895,7 @@ class LoginController extends Controller
             }
         }
         $page = LoginPage::getData();
+        $custom_field = StudentCustomField::getData();
 
         $data=[];
         if (config('app.demo_mode')){
@@ -900,8 +903,144 @@ class LoginController extends Controller
                 $q->where('status',1);
             })->where('type','System')->get(['id','name']);
          }
-        return view(theme('auth.signin'),$data, compact('page'));
+        return view(theme('auth.signin'),$data, compact('page', 'custom_field'));
     }
+
+    public function register(Request $request)
+    {
+        if (isModuleActive('LmsSaasMD')) {
+            ini_set('max_execution_time', 10000);
+        }
+
+        $validator = $this->registerValidator($request->all());
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        $user = $this->createUser($request->all());
+
+        if (isModuleActive('LmsSaasMD') && !empty($user->institute) && $user->institute->status == 0) {
+            $maintain = collect();
+            $maintain->maintenance_title = trans('saas.View Title');
+            $maintain->maintenance_sub_title = trans('saas.View Sub Title');
+            $maintain->maintenance_banner = HomeContents('maintenance_banner');
+            return new response(view(theme('pages.maintenance'), compact('maintain')));
+        }
+
+        Auth::login($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => __('Registration successful!'),
+            'redirect' => route('home')
+        ]);
+    }
+
+    protected function registerValidator(array $data)
+    {
+        if (saasEnv('NOCAPTCHA_FOR_REG') == 'true' && !($data['type'] ?? '' == "Instructor")) {
+            $rules = [
+                'name' => ['required', 'string', 'max:255'],
+                'phone' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:1|unique:users',
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+                'g-recaptcha-response' => 'required|captcha'
+            ];
+        } else {
+            $rules = [
+                'name' => ['required', 'string', 'max:255'],
+                'phone' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:1|unique:users',
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+            ];
+        }
+
+        if (isset($data['is_lms_signup'])) {
+            $rules = [
+                'name' => ['required', 'string', 'max:255'],
+                'phone' => 'nullable|string|regex:/^([0-9\s\-\+\(\)]*)$/|min:1|unique:users',
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+                'password' => ['required', 'string', 'min:8', 'confirmed'],
+                'institute_name' => ['required', 'string', 'max:255'],
+                'domain' => ['required', 'string', 'max:20', 'unique:lms_institutes'],
+            ];
+        }
+
+        if (currentTheme() == 'tvt') {
+            $rules['level'] = ['required'];
+        }
+
+        if (isset($data['type']) && $data['type'] == "Instructor") {
+            // Instructor specific rules
+        } else {
+            $custom_field = StudentCustomField::getData();
+
+            if ($custom_field->required_company == 1) {
+                $rules['company'] = ['required', 'string', 'max:255'];
+            }
+            if ($custom_field->required_gender == 1) {
+                $rules['gender'] = ['required', 'string', 'max:255'];
+            }
+            if ($custom_field->required_student_type == 1) {
+                $rules['student_type'] = ['required', 'string', 'max:255'];
+            }
+            if ($custom_field->required_identification_number == 1) {
+                $rules['identification_number'] = ['required', 'string', 'max:255'];
+            }
+            if ($custom_field->required_job_title == 1) {
+                $rules['job_title'] = ['required', 'string', 'max:255'];
+            }
+            if ($custom_field->required_dob == 1) {
+                $rules['dob'] = ['required', 'string', 'max:255'];
+            }
+            if ($custom_field->required_institute == 1) {
+                $rules['institute_id'] = ['required', 'string', 'max:255'];
+            }
+        }
+
+        return Validator::make($data, $rules, validationMessage($rules));
+    }
+
+    protected function createUser(array $data)
+    {
+        if (isset($data['type']) && $data['type'] == "Instructor") {
+            $role = 2;
+        } else {
+            $role = 3;
+        }
+        if (isset($data['is_lms_signup'])) {
+            $role = 1;
+        }
+
+        if (empty($data['phone'])) {
+            $data['phone'] = null;
+        }
+        if (isModuleActive('Organization') && isset($data['account_type']) && $data['account_type']) {
+            $role = $data['account_type'];
+        }
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+            'role_id' => $role,
+            'phone' => $data['phone'],
+            'company' => $data['company'] ?? null,
+            'gender' => $data['gender'] ?? null,
+            'student_type' => $data['student_type'] ?? null,
+            'identification_number' => $data['identification_number'] ?? null,
+            'job_title' => $data['job_title'] ?? null,
+            'dob' => $data['dob'] ?? null,
+            'institute_id' => $data['institute_id'] ?? null,
+            'referral_code' => $data['referral_code'] ?? null,
+        ]);
+
+        return $user;
+       }
 
     public function autologin($key)
     {

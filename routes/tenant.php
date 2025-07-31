@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 Auth::routes(['verify' => true]);
 
 Route::get('signin', '\App\Http\Controllers\Auth\LoginController@showSigninForm')->name('signin');
+Route::post('signin/register', '\App\Http\Controllers\Auth\LoginController@register')->name('signin.register');
 
 
 Route::post('store-google-analytics-client-id', StoreGoogleAnalyticsClientIdController::class)->middleware('web');
