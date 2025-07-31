@@ -159,7 +159,7 @@ class LoginController extends Controller
                 'provider_id' => $providerUser->getId(),
                 'access_token' => $providerUser->token,
                 'password' => bcrypt(now()),
-                'language_id' => Settings('language_id') ?? '19',
+                'language_id' => Settings('language_id') ?? '38',
                 'language_name' => Settings('language_name') ?? 'English',
                 'language_code' => Settings('language_code') ?? 'en',
                 'language_rtl' => Settings('language_rtl') ?? '0',
@@ -617,7 +617,7 @@ class LoginController extends Controller
             Session::flush();
         }
 
-        return redirect('/');
+        return redirect()->route('signin');
     }
 
     private function classAttendance($user)

@@ -1223,14 +1223,56 @@ function hideErrors() {
 
 // Form submission handling
 document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
     const submitBtn = this.querySelector('.submit-btn');
     const btnText = submitBtn.querySelector('.btn-text');
     const btnIcon = submitBtn.querySelector('.btn-icon');
+    const originalText = btnText.textContent;
     
     // Disable button and show loading state
     submitBtn.disabled = true;
     btnText.textContent = '{{__("common.Signing In...")}}';
-    btnIcon.style.display = 'none';
+    if (btnIcon) btnIcon.style.display = 'none';
+    
+    // Clear any previous errors
+    hideErrors();
+    
+    fetch('{{route("login")}}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': '{{csrf_token()}}',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => { throw err; });
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.redirect) {
+            window.location.href = data.redirect;
+        } else {
+            // Default redirect if none provided
+            window.location.href = '{{url("/")}}';
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        if (error.errors) {
+            showErrors(error.errors);
+        } else {
+            showErrors({general: [error.message || 'An error occurred. Please try again.']});
+        }
+        submitBtn.disabled = false;
+        btnText.textContent = originalText;
+        if (btnIcon) btnIcon.style.display = 'block';
+    });
 });
 
 // Registration form handling

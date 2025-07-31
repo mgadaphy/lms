@@ -1,5 +1,19 @@
 # LMS System Changelog
 
+## [2024-12-19] - Enhanced Login and Logout Functionality
+
+### Added
+- **JSON Error Handling for Login Form**
+  - Added consistent JSON error display for login form to match registration form
+  - Implemented frontend JavaScript to handle and display validation errors above the form
+  - Added error container and styling for login form validation messages
+
+### Modified
+- **Logout Redirection**
+  - Updated `LoginController@logout` to redirect to the signin page instead of home page
+  - Changed redirect from `return redirect('/')` to `return redirect()->route('signin')`
+  - Ensures consistent user experience after logout
+
 ## [2024-12-19] - Modernized Signin System Implementation
 
 ### Added
