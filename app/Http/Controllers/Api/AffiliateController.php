@@ -12,8 +12,8 @@ use Modules\Affiliate\Entities\AffiliateCommission;
 use Modules\Affiliate\Http\Requests\AffiliateLinkRequest;
 use Modules\Affiliate\Http\Requests\AffiliateWithdrawRequest;
 use Modules\Affiliate\Http\Requests\BalanceTransferRequest;
-use Modules\Affiliate\Repositories\AffiliateRepository;
-use Modules\Affiliate\Repositories\AffiliateTransactionRepository;
+// use Modules\Affiliate\Repositories\AffiliateRepository;
+// use Modules\Affiliate\Repositories\AffiliateTransactionRepository;
 use Modules\BundleSubscription\Entities\BundleCoursePlan;
 use Modules\CourseSetting\Entities\Course;
 use Modules\Subscription\Entities\CourseSubscription;
@@ -23,12 +23,12 @@ class AffiliateController extends Controller
     protected $affiliateRepo, $affiliateTransactionRepo;
 
 
-    public function __construct(AffiliateRepository $affiliateRepo, AffiliateTransactionRepository $affiliateTransactionRepo)
+    public function __construct()
     {
         config(['auth.defaults.guard' => 'api']);
 
-        $this->affiliateRepo = $affiliateRepo;
-        $this->affiliateTransactionRepo = $affiliateTransactionRepo;
+        // $this->affiliateRepo = $affiliateRepo;
+        // $this->affiliateTransactionRepo = $affiliateTransactionRepo;
     }
 
     public function statistics(Request $request)

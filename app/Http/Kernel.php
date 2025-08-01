@@ -89,7 +89,8 @@ class Kernel extends HttpKernel
             IpCheck::class,
             HttpsProtocol::class,
             LastActivityMiddleware::class,
-            Impersonate::class
+            Impersonate::class,
+            'profile.complete'
         ],
 
         'api' => [
@@ -127,7 +128,8 @@ class Kernel extends HttpKernel
         'saasAdmin' => SaasAdmin::class,
         'demo' => DemoPreventMiddleware::class,
         '2fa' => Middleware::class,
-        '2faApi' => CheckApi2Fa::class
+        '2faApi' => CheckApi2Fa::class,
+        'profile.complete' => \App\Http\Middleware\ProfileComplete::class
 
     ];
 }

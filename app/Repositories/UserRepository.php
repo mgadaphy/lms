@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Modules\Affiliate\Repositories\AffiliateRepository;
+// use Modules\Affiliate\Repositories\AffiliateRepository;
 use Modules\Coupons\Entities\UserWiseCoupon;
 use Modules\CourseSetting\Entities\Course;
 use Modules\CourseSetting\Entities\CourseEnrolled;
@@ -112,13 +112,13 @@ class UserRepository implements UserRepositoryInterface
         applyDefaultRoleToUser($user);
 
         if (isModuleActive('Affiliate')) {
-            $affiliateRepo = new AffiliateRepository();
+            // $affiliateRepo = new AffiliateRepository();
 
-            if (isset($data['referral_code']) && !empty($data['referral_code'])) {
-                $affiliateRepo->affiliateUserByCode($data['referral_code']);
-            }else{
-                $affiliateRepo->affiliateUser($user->id);
-            }
+            // if (isset($data['referral_code']) && !empty($data['referral_code'])) {
+            //     $affiliateRepo->affiliateUserByCode($data['referral_code']);
+            // }else{
+            //     $affiliateRepo->affiliateUser($user->id);
+            // }
 
         }
         assignStaffToUser($user);

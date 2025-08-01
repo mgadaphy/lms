@@ -51,17 +51,7 @@
       0 => 'Bryceandy\\Laravel_Pesapal\\PesapalServiceProvider',
     ),
   ),
-  'freshbitsweb/laravel-google-analytics-4-measurement-protocol' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Freshbitsweb\\LaravelGoogleAnalytics4MeasurementProtocol\\GA4ServiceProvider',
-    ),
-    'aliases' => 
-    array (
-      'GA4' => 'Freshbitsweb\\LaravelGoogleAnalytics4MeasurementProtocol\\Facades\\GA4',
-    ),
-  ),
+
   'hisorange/browser-detect' => 
   array (
     'providers' => 
@@ -145,18 +135,7 @@
       0 => 'Laravel\\Ui\\UiServiceProvider',
     ),
   ),
-  'laravelcollective/html' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Collective\\Html\\HtmlServiceProvider',
-    ),
-    'aliases' => 
-    array (
-      'Form' => 'Collective\\Html\\FormFacade',
-      'Html' => 'Collective\\Html\\HtmlFacade',
-    ),
-  ),
+
   'livewire/livewire' => 
   array (
     'providers' => 
@@ -387,17 +366,7 @@
       'Paystack' => 'Unicodeveloper\\Paystack\\Facades\\Paystack',
     ),
   ),
-  'vimeo/laravel' => 
-  array (
-    'providers' => 
-    array (
-      0 => 'Vimeo\\Laravel\\VimeoServiceProvider',
-    ),
-    'aliases' => 
-    array (
-      'Vimeo' => 'Vimeo\\Laravel\\Facades\\Vimeo',
-    ),
-  ),
+
   'yajra/laravel-datatables-buttons' => 
   array (
     'providers' => 

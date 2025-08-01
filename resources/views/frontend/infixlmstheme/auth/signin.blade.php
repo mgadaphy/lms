@@ -77,32 +77,32 @@
                 <form action="{{route('login')}}" method="POST" id="loginForm" class="signin-form">
                     @csrf
                     <div class="form-group">
-                        <label for="login-email" class="form-label">{{__('common.Email Address')}}</label>
+                        <label for="login-email" class="form-label">{{__('Email Address')}}</label>
                         <div class="input-wrapper">
                             <svg class="input-icon" viewBox="0 0 24 24">
                                 <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
                             </svg>
-                            <input type="email" 
+                            <input type="email"
                                    id="login-email"
-                                   name="email" 
+                                   name="email"
                                    value="{{old('email')}}"
                                    class="form-input"
-                                   placeholder="{{__('common.Enter your email')}}"
+                                   placeholder="{{__('Enter your email')}}"
                                    required>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="login-password" class="form-label">{{__('common.Password')}}</label>
+                        <label for="login-password" class="form-label">{{__('Password')}}</label>
                         <div class="input-wrapper">
                             <svg class="input-icon" viewBox="0 0 24 24">
                                 <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
                             </svg>
-                            <input type="password" 
+                            <input type="password"
                                    id="login-password"
-                                   name="password" 
+                                   name="password"
                                    class="form-input"
-                                   placeholder="{{__('common.Enter your password')}}"
+                                   placeholder="{{__('Enter your password')}}"
                                    autocomplete="current-password"
                                    required>
                             <button type="button" class="password-toggle" onclick="togglePassword('login-password')">
@@ -129,9 +129,9 @@
                         <label class="checkbox-wrapper">
                             <input type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }} value="1">
                             <span class="checkmark"></span>
-                            <span class="checkbox-label">{{__('common.Remember Me')}}</span>
+                            <span class="checkbox-label">{{__('Remember Me')}}</span>
                         </label>
-                        
+
                         @if(Settings('allow_force_logout'))
                         <label class="checkbox-wrapper">
                             <input type="checkbox" name="force" {{ old('force') ? 'checked' : '' }} value="1">
@@ -141,25 +141,25 @@
                         @endif
 
                         <a href="{{route('SendPasswordResetLink')}}" class="forgot-link">
-                            {{__('common.Forgot Password')}}?
+                            {{__('Forgot Password')}}?
                         </a>
                     </div>
 
                     <!-- Submit Button -->
                     <div class="form-group">
                         @if(saasEnv('NOCAPTCHA_FOR_LOGIN')=='true' && saasEnv('NOCAPTCHA_IS_INVISIBLE')=="true")
-                            <button type="button" class="submit-btn g-recaptcha" 
-                                    data-sitekey="{{saasEnv('NOCAPTCHA_SITEKEY')}}" 
-                                    data-size="invisible" 
+                            <button type="button" class="submit-btn g-recaptcha"
+                                    data-sitekey="{{saasEnv('NOCAPTCHA_SITEKEY')}}"
+                                    data-size="invisible"
                                     data-callback="onLoginSubmit">
-                                <span class="btn-text">{{__('common.Login')}}</span>
+                                <span class="btn-text">{{__('Login')}}</span>
                                 <svg class="btn-icon" viewBox="0 0 24 24">
                                     <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
                                 </svg>
                             </button>
                         @else
                             <button type="submit" class="submit-btn">
-                                <span class="btn-text">{{__('common.Login')}}</span>
+                                <span class="btn-text">{{__('Login')}}</span>
                                 <svg class="btn-icon" viewBox="0 0 24 24">
                                     <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"/>
                                 </svg>
@@ -171,7 +171,7 @@
                 <!-- Demo Login Buttons -->
                 @if(config('app.demo_mode'))
                 <div class="demo-section">
-                    <p class="demo-text">{{__('common.Demo Login')}}</p>
+                    <p class="demo-text">{{__('Demo Login')}}</p>
                     <div class="demo-buttons">
                         @foreach($roles as $role)
                         <a href="{{route('auto.login',$role->id)}}" class="demo-btn">
@@ -196,7 +196,7 @@
                                         <label class="primary_bulet_checkbox d-flex">
                                             <input checked class="quizAns" name="account_type" type="radio" value="3">
                                             <span class="checkmark mr_10"></span>
-                                            <span class="label_name">{{__('common.Student')}} </span>
+                                            <span class="label_name">{{__('Student')}} </span>
                                         </label>
                                     </li>
                                     <li class="ms-3">
@@ -214,8 +214,8 @@
                             <div class="col-12 mt_20">
                                 <div class="input-group custom_group_field">
                                     <input type="text" class="form-control ps-0"
-                                           placeholder="{{__('student.Enter Full Name')}} {{ $custom_field->required_name ? '*' : ''}}"
-                                           {{ $custom_field->required_name ? 'required' : ''}} 
+                                           placeholder="{{__('Enter Full Name')}} {{ $custom_field->required_name ? '*' : ''}}"
+                                           {{ $custom_field->required_name ? 'required' : ''}}
                                            name="name" value="{{old('name')}}">
                                 </div>
                             </div>
@@ -224,7 +224,7 @@
                         <div class="col-12 mt_20">
                             <div class="input-group custom_group_field">
                                 <input type="email" class="form-control ps-0" required
-                                       placeholder="{{__('common.Enter Email')}} *" 
+                                       placeholder="{{__('Enter Email')}} *"
                                        name="email" value="{{old('email')}}">
                             </div>
                         </div>
@@ -233,7 +233,7 @@
                             <div class="col-12 mt_20">
                                 <div class="input-group custom_group_field">
                                     <input type="text" class="form-control ps-0"
-                                           placeholder="{{__('common.Enter Phone Number')}} {{ $custom_field->required_phone ? '*' : ''}}"
+                                           placeholder="{{__('Enter Phone Number')}} {{ $custom_field->required_phone ? '*' : ''}}"
                                            {{ $custom_field->required_phone ? 'required' : ''}}
                                            name="phone" value="{{old('phone')}}">
                                 </div>
@@ -243,7 +243,7 @@
                         <div class="col-12 mt_20">
                             <div class="input-group custom_group_field">
                                 <input type="password" class="form-control ps-0" required
-                                       placeholder="{{__('frontend.Enter Password')}} *"
+                                       placeholder="{{__('Enter Password')}} *"
                                        autocomplete="new-password" name="password">
                             </div>
                         </div>
@@ -251,7 +251,7 @@
                         <div class="col-12 mt_20">
                             <div class="input-group custom_group_field">
                                 <input type="password" class="form-control ps-0" required
-                                       placeholder="{{__('common.Enter Confirm Password')}} *"
+                                       placeholder="{{__('Enter Confirm Password')}} *"
                                        name="password_confirmation">
                             </div>
                         </div>
@@ -260,7 +260,7 @@
                             <div class="col-12 mt_20">
                                 <div class="input-group custom_group_field">
                                     <input id="dob" type="text" class="form-control ps-0 datepicker w-100"
-                                           placeholder="{{__('common.Date of Birth')}} {{ $custom_field->required_dob ? '*' : ''}}"
+                                           placeholder="{{__('Date of Birth')}} {{ $custom_field->required_dob ? '*' : ''}}"
                                            {{ $custom_field->required_dob ? 'required' : ''}}
                                            name="dob" value="{{ old('dob') }}">
                                 </div>
@@ -271,7 +271,7 @@
                             <div class="col-12 mt_20">
                                 <div class="input-group custom_group_field">
                                     <input type="text" class="form-control ps-0"
-                                           placeholder="{{__('common.Enter Company')}} {{ $custom_field->required_company ? '*' : ''}}"
+                                           placeholder="{{__('Enter Company')}} {{ $custom_field->required_company ? '*' : ''}}"
                                            {{ $custom_field->required_company ? 'required' : ''}}
                                            name="company" value="{{old('company')}}">
                                 </div>
@@ -282,7 +282,7 @@
                             <div class="col-12 mt_20">
                                 <div class="input-group custom_group_field">
                                     <input type="text" class="form-control ps-0"
-                                           placeholder="{{__('common.Enter Identification Number')}} {{ $custom_field->required_identification_number ? '*' : ''}}"
+                                           placeholder="{{__('Enter Identification Number')}} {{ $custom_field->required_identification_number ? '*' : ''}}"
                                            {{ $custom_field->required_identification_number ? 'required' : ''}}
                                            name="identification_number" value="{{old('identification_number')}}">
                                 </div>
@@ -293,7 +293,7 @@
                             <div class="col-12 mt_20">
                                 <div class="input-group custom_group_field">
                                     <input type="text" class="form-control ps-0"
-                                           placeholder="{{__('common.Enter Job Title')}} {{ $custom_field->required_job_title ? '*' : ''}}"
+                                           placeholder="{{__('Enter Job Title')}} {{ $custom_field->required_job_title ? '*' : ''}}"
                                            {{ $custom_field->required_job_title ? 'required' : ''}}
                                            name="job_title" value="{{old('job_title')}}">
                                 </div>
@@ -305,13 +305,13 @@
                                 <div class="short_select mt-3">
                                     <div class="row">
                                         <div class="col-xl-5">
-                                            <h5 class="mr_10 font_16 f_w_500 mb-0">{{ __('common.choose_gender') }} {{ $custom_field->required_gender ? '*' : '' }}</h5>
+                                            <h5 class="mr_10 font_16 f_w_500 mb-0">{{ __('choose_gender') }} {{ $custom_field->required_gender ? '*' : '' }}</h5>
                                         </div>
                                         <div class="col-xl-7">
                                             <select class="small_select w-100" name="gender" {{ $custom_field->required_gender ? 'selected' : '' }}>
-                                                <option value="male">{{__('common.Male')}}</option>
-                                                <option value="female">{{__('common.Female')}}</option>
-                                                <option value="other">{{__('common.Other')}}</option>
+                                                <option value="male">{{__('Male')}}</option>
+                                                <option value="female">{{__('Female')}}</option>
+                                                <option value="other">{{__('Other')}}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -324,12 +324,12 @@
                                 <div class="short_select mt-3">
                                     <div class="row">
                                         <div class="col-xl-5">
-                                            <h5 class="mr_10 font_16 f_w_500 mb-0">{{ __('common.choose_student_type') }} {{ $custom_field->required_student_type ? '*' : '' }}</h5>
+                                            <h5 class="mr_10 font_16 f_w_500 mb-0">{{ __('choose_student_type') }} {{ $custom_field->required_student_type ? '*' : '' }}</h5>
                                         </div>
                                         <div class="col-xl-7">
                                             <select class="small_select w-100" name="student_type" {{ $custom_field->required_student_type ? 'selected' : '' }}>
-                                                <option value="personal">{{__('common.Personal')}}</option>
-                                                <option value="corporate">{{__('common.Corporate')}}</option>
+                                                <option value="personal">{{__('Personal')}}</option>
+                                                <option value="corporate">{{__('Corporate')}}</option>
                                             </select>
                                         </div>
                                     </div>
@@ -342,11 +342,11 @@
                                 <div class="short_select mt-3">
                                     <div class="row">
                                         <div class="col-xl-5">
-                                            <h5 class="mr_10 font_16 f_w_500 mb-0">{{ __('common.choose_institute') }} {{ $custom_field->required_institute ? '*' : '' }}</h5>
+                                            <h5 class="mr_10 font_16 f_w_500 mb-0">{{ __('choose_institute') }} {{ $custom_field->required_institute ? '*' : '' }}</h5>
                                         </div>
                                         <div class="col-xl-7">
                                             <select class="small_select w-100" name="institute_id">
-                                                <option value="">{{__('common.select_one')}}</option>
+                                                <option value="">{{__('select_one')}}</option>
                                                 @foreach(Institute::where('status',1)->get() as $institute)
                                                     <option value="{{$institute->id}}">{{$institute->name}}</option>
                                                 @endforeach
@@ -392,10 +392,10 @@
                                 <button type="button" class="g-recaptcha theme_btn text-center w-100 disable_btn" disabled
                                         data-sitekey="{{saasEnv('NOCAPTCHA_SITEKEY')}}" data-size="invisible"
                                         data-callback="onRegisterSubmit"
-                                        class="theme_btn text-center w-100"> {{__('common.Register')}}</button>
+                                        class="theme_btn text-center w-100"> {{__('Register')}}</button>
                             @else
                                 <button type="submit" class="theme_btn text-center w-100 disable_btn" disabled id="submitBtn">
-                                    {{__('common.Register')}}
+                                    {{__('Register')}}
                                 </button>
                             @endif
                         </div>
@@ -428,7 +428,7 @@
                     $slogans3 = $page->forget_slogans3;
                 }
             @endphp
-            
+
             <div class="banner-content">
                 <div class="banner-text">
                     <h2 class="banner-title">{{$title ?? 'Welcome to Infix Learning Management System'}}</h2>
@@ -1146,11 +1146,11 @@
         grid-template-columns: 1fr;
         max-width: 500px;
     }
-    
+
     .signin-banner-section {
         display: none;
     }
-    
+
     .signin-form-section {
         padding: 40px 30px;
     }
@@ -1160,20 +1160,20 @@
     .modern-signin-wrapper {
         padding: 10px;
     }
-    
+
     .signin-form-section {
         padding: 30px 20px;
     }
-    
+
     .welcome-title {
         font-size: 24px;
     }
-    
+
     .form-options {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .demo-buttons {
         flex-direction: column;
         align-items: center;
@@ -1184,15 +1184,15 @@
     .signin-form-section {
         padding: 20px 15px;
     }
-    
+
     .welcome-title {
         font-size: 20px;
     }
-    
+
     .form-input {
         padding: 14px 14px 14px 44px;
     }
-    
+
     .input-icon {
         left: 12px;
         width: 18px;
@@ -1209,17 +1209,17 @@ function switchTab(tabName) {
         btn.classList.remove('active');
     });
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-    
+
     // Update tab content
     document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
     });
     document.getElementById(`${tabName}-tab`).classList.add('active');
-    
+
     // Update page title and subtitle
     const pageTitle = document.getElementById('page-title');
     const pageSubtitle = document.getElementById('page-subtitle');
-    
+
     if (tabName === 'login') {
         pageTitle.textContent = 'Welcome back';
         pageSubtitle.textContent = 'Please sign in to your account';
@@ -1229,7 +1229,7 @@ function switchTab(tabName) {
         pageSubtitle.textContent = 'Join our learning community';
         document.title = 'Sign Up - ' + document.title.split(' - ')[0];
     }
-    
+
     // Clear error messages
     hideErrors();
 }
@@ -1238,7 +1238,7 @@ function switchTab(tabName) {
 function togglePassword(inputId) {
     const passwordInput = document.getElementById(inputId);
     const eyeIcon = passwordInput.parentElement.querySelector('.eye-icon');
-    
+
     if (passwordInput.type === 'password') {
         passwordInput.type = 'text';
         eyeIcon.innerHTML = '<path d="M12 7c2.76 0 5 2.24 5 5 0 .65-.13 1.26-.36 1.83l2.92 2.92c1.51-1.26 2.7-2.89 3.43-4.75-1.73-4.39-6-7.5-11-7.5-1.4 0-2.74.25-3.98.7l2.16 2.16C10.74 7.13 11.35 7 12 7zM2 4.27l2.28 2.28.46.46C3.08 8.3 1.78 10.02 1 12c1.73 4.39 6 7.5 11 7.5 1.55 0 3.03-.3 4.38-.84l.42.42L19.73 22 21 20.73 3.27 3 2 4.27zM7.53 9.8l1.55 1.55c-.05.21-.08.43-.08.65 0 1.66 1.34 3 3 3 .22 0 .44-.03.65-.08l1.55 1.55c-.67.33-1.41.53-2.2.53-2.76 0-5-2.24-5-5 0-.79.2-1.53.53-2.2zm4.31-.78l3.15 3.15.02-.16c0-1.66-1.34-3-3-3l-.17.01z"/>';
@@ -1252,10 +1252,10 @@ function togglePassword(inputId) {
 function showErrors(errors) {
     const errorContainer = document.getElementById('error-container');
     const errorMessages = document.getElementById('error-messages');
-    
+
     // Clear any existing success messages
     errorMessages.innerHTML = '';
-    
+
     let errorHtml = '<ul class="mb-0">';
     for (const [field, messages] of Object.entries(errors)) {
         if (Array.isArray(messages)) {
@@ -1267,7 +1267,7 @@ function showErrors(errors) {
         }
     }
     errorHtml += '</ul>';
-    
+
     errorMessages.innerHTML = errorHtml;
     errorContainer.className = 'error-container';
     errorContainer.style.display = 'block';
@@ -1277,28 +1277,28 @@ function hideErrors() {
     const errorContainer = document.getElementById('error-container');
     errorContainer.style.display = 'none';
     errorContainer.className = 'error-container';
-    
+
     // Don't hide success messages when hiding errors
 }
 
 // Form submission handling
 document.getElementById('loginForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     const formData = new FormData(this);
     const submitBtn = this.querySelector('.submit-btn');
     const btnText = submitBtn.querySelector('.btn-text');
     const btnIcon = submitBtn.querySelector('.btn-icon');
     const originalText = btnText.textContent;
-    
+
     // Disable button and show loading state
     submitBtn.disabled = true;
-    btnText.textContent = '{{__("common.Signing In...")}}';
+    btnText.textContent = '{{__("Signing In...")}}';
     if (btnIcon) btnIcon.style.display = 'none';
-    
+
     // Clear any previous errors
     hideErrors();
-    
+
     fetch('{{route("login")}}', {
         method: 'POST',
         body: formData,
@@ -1338,21 +1338,21 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 // Registration form handling
 document.getElementById('registerForm').addEventListener('submit', function(e) {
     e.preventDefault();
-    
+
     const formData = new FormData(this);
     const submitBtn = this.querySelector('button[type="submit"]');
     const originalText = submitBtn.textContent;
-    
+
     // Disable button and show loading state
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> {{__("common.Registering...")}}';
-    
+    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> {{__("Registering...")}}';
+
     // Clear any previous messages
     const successContainer = document.getElementById('success-container');
     const errorContainer = document.getElementById('error-container');
     successContainer.style.display = 'none';
     errorContainer.style.display = 'none';
-    
+
     fetch('{{route("signin.register")}}', {
         method: 'POST',
         body: formData,
@@ -1381,20 +1381,20 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
                     </div>
                 </div>
             `;
-            
+
             successContainer.innerHTML = successHtml;
             successContainer.style.display = 'block';
-            
+
             // Reset form
             this.reset();
-            
+
             // Re-enable the button with original text
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
-            
+
             // Auto-scroll to show the success message
             successContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            
+
             // Remove any existing login form errors when registration is successful
             const loginForm = document.getElementById('loginForm');
             if (loginForm) {
@@ -1404,18 +1404,18 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     })
     .catch(error => {
         console.error('Registration error:', error);
-        
+
         // Re-enable the button with original text
         submitBtn.disabled = false;
         submitBtn.innerHTML = originalText;
-        
+
         // Show error in the error container
         if (error.errors) {
             showErrors(error.errors);
         } else {
             showErrors({general: [error.message || 'An error occurred during registration. Please try again.']});
         }
-        
+
         // Scroll to show the error message
         errorContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
@@ -1455,4 +1455,4 @@ document.addEventListener('DOMContentLoaded', function() {
 
 @if(saasEnv('NOCAPTCHA_FOR_REG')=='true' && saasEnv('NOCAPTCHA_IS_INVISIBLE')=="true")
 <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-@endif 
+@endif

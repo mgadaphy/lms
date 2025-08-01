@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\StoreGoogleAnalyticsClientIdController;
+use App\Http\Controllers\ProfileCompletionController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -92,6 +93,13 @@ Route::group(['namespace' => 'Frontend'], function () {
     Route::get('my-cart', 'WebsiteController@myCart')->name('myCart');
     Route::get('ajaxCounterCity', 'WebsiteController@ajaxCounterCity')->name('ajaxCounterCity');
     Route::get('ajaxCounterState', 'WebsiteController@ajaxCounterState')->name('ajaxCounterState');
+    
+    // Profile completion routes
+    Route::get('profile-completion', '\App\Http\Controllers\ProfileCompletionController@show')->name('profile.completion.show');
+    Route::post('profile-completion/update', '\App\Http\Controllers\ProfileCompletionController@update')->name('profile.completion.update');
+    Route::get('profile-completion/get-states', '\App\Http\Controllers\ProfileCompletionController@getStates')->name('profile.completion.getStates');
+    Route::get('profile-completion/get-cities', '\App\Http\Controllers\ProfileCompletionController@getCities')->name('profile.completion.getCities');
+    
     Route::get('/home/removeItem/{id}', 'WebsiteController@removeItem')->name('removeItem');
     Route::get('/home/removeItemAjax/{id}', 'WebsiteController@removeItemAjax')->name('removeItemAjax');
     Route::post('/submit_ans', 'WebsiteController@submitAns')->name('submitAns');

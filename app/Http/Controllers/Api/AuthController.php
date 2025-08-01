@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
-use Modules\Affiliate\Repositories\AffiliateRepository;
+// use Modules\Affiliate\Repositories\AffiliateRepository;
 use Modules\MyClass\Entities\ClassAttendance;
 use Modules\TwoFA\Entities\UserOtpCode;
 use Stevebauman\Location\Facades\Location;
@@ -113,13 +113,13 @@ class AuthController extends Controller
             applyDefaultRoleToUser($user);
 
             if (isModuleActive('Affiliate')) {
-                $affiliateRepo = new AffiliateRepository();
+                // $affiliateRepo = new AffiliateRepository();
 
-                if ($request->referral_code) {
-                    $affiliateRepo->affiliateUserByCode($request->referral_code);
-                }else{
-                    $affiliateRepo->affiliateUser($user->id);
-                }
+                // if ($request->referral_code) {
+                //     $affiliateRepo->affiliateUserByCode($request->referral_code);
+                // }else{
+                //     $affiliateRepo->affiliateUser($user->id);
+                // }
 
             }
 
