@@ -36,14 +36,14 @@ class ProfileCompletionController extends Controller
         // Get initial states and cities if user has country/state selected
         $states = collect();
         $cities = collect();
-        
+
         if ($user->country) {
             try {
                 $states = DB::table('states')
                     ->select('id', 'name')
                     ->where('country_id', $user->country)
                     ->get();
-                    
+
                 if ($user->state) {
                     $cities = DB::table('spn_cities')
                         ->select('id', 'name')
@@ -76,12 +76,18 @@ class ProfileCompletionController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthenticated.',
-            ], 401);
+            ], 401)->header('Content-Type', 'application/json');
         }
 
         $user = Auth::user();
 
-        $validator = Validator::make($request->all(), [
+        // Only get the fields we expect from the request
+        $validatedData = $request->only([
+            'gender', 'phone', 'dob', 'address', 'city', 'state', 'country', 
+            'institute_id', 'timezone_id', 'about'
+        ]);
+
+        $validator = Validator::make($validatedData, [
             'gender' => ['nullable', 'string', 'in:male,female,other'],
             'phone' => ['required', 'string', 'max:20', 'unique:users,phone,' . $user->id],
             'dob' => ['required', 'date', 'before:today'],
@@ -98,7 +104,7 @@ class ProfileCompletionController extends Controller
             return response()->json([
                 'success' => false,
                 'errors' => $validator->errors(),
-            ], 422);
+            ], 422)->header('Content-Type', 'application/json');
         }
 
         // Update user basic info
@@ -138,7 +144,7 @@ class ProfileCompletionController extends Controller
             'is_complete' => $isComplete,
             'completion_percentage' => $completionPercentage,
             'redirect_url' => $isComplete ? route('student.dashboard') : null,
-        ]);
+        ])->header('Content-Type', 'application/json');
     }
 
     /**
@@ -216,7 +222,7 @@ class ProfileCompletionController extends Controller
                     'text' => $item->name
                 ];
             }
-            
+
             return response()->json(['results' => $response]);
 
         } catch (\Exception $e) {
@@ -251,7 +257,7 @@ class ProfileCompletionController extends Controller
                     'text' => $item->name
                 ];
             }
-            
+
             return response()->json(['results' => $response]);
 
         } catch (\Exception $e) {

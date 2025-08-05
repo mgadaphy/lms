@@ -84,10 +84,10 @@
                             </div>
                         </div>
 
-                        <form id="profile-completion-form">
+                        <form id="profile-completion-form" class="profile-completion-form" data-ajax-form="true">
                             @csrf
 
-                            <div class="row">
+<div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="gender">{{ __('Gender') }} <span class="text-danger">*</span></label>
@@ -212,29 +212,29 @@
                                 <span class="invalid-feedback" id="about-error"></span>
                             </div>
 
-                            <!-- Debug Section: Current Selections -->
-                            <div class="card mt-4">
-                                <div class="card-header bg-warning text-dark font-weight-bold d-flex justify-content-between align-items-center">
-                                    <span>Debug Information</span>
-                                </div>
-                                <div class="card-body p-0" id="debug-container">
-                                    <div class="p-3 border-bottom">
-                                        <h6>Current Selections:</h6>
-                                        <div id="current-selections" class="mb-3">
-                                            <div>Country: <span id="debug-country">Not selected</span></div>
-                                            <div>State: <span id="debug-state">Not selected</span></div>
-                                            <div>City: <span id="debug-city">Not selected</span></div>
-                                        </div>
-                                    </div>
-                                </div>
+                            <!-- Submit Button -->
+                            <div class="form-group text-center mt-4">
+                                <button type="submit" class="btn btn-primary">
+                                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                    {{ __('Save Profile') }}
+                                </button>
                             </div>
+
 
     <!-- Load jQuery and Select2 -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://code.jquery.com/jquery-migrate-3.4.0.min.js"></script>
     <script src="{{ asset('public/frontend/infixlmstheme/js/select2.min.js') }}"></script>
     <script>
-    $(document).ready(function() {
+    // Use a self-executing function to prevent variable leaks
+    (function($) {
+        'use strict';
+        
+        // Store the form submission state to prevent double submission
+        var isSubmitting = false;
+        
+        // Initialize when document is ready
+        $(document).ready(function() {
         // Initialize Select2 for all relevant selects
         $('#country, #state, #city, .select2').select2({ width: '100%' });
 
@@ -243,7 +243,7 @@
             let countryText = 'Not selected';
             let stateText = 'Not selected';
             let cityText = 'Not selected';
-            
+
             // Get country text
             const $country = $('#country');
             if ($country.val()) {
@@ -386,6 +386,114 @@
         }
         // Wait for Select2 to be fully initialized
         setTimeout(initializeDropdowns, 100);
-    });
+
+        // Form submission handler with namespace to prevent interference
+        $(document).off('submit.profile-completion', '#profile-completion-form')
+                  .on('submit.profile-completion', '#profile-completion-form', function(e) {
+            // Prevent default form submission and stop propagation
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            
+            // Prevent double submission
+            if (isSubmitting) return false;
+            isSubmitting = true;
+            
+            // Show loading state
+            const $form = $(this);
+            const $submitBtn = $form.find('button[type="submit"]');
+            const $spinner = $submitBtn.find('.spinner-border');
+            const originalBtnText = $submitBtn.html();
+            
+            $submitBtn.prop('disabled', true);
+            $spinner.removeClass('d-none');
+            
+            // Clear previous errors
+            $form.find('.is-invalid').removeClass('is-invalid');
+            $form.find('.invalid-feedback').text('');
+            
+            // Get form data using FormData to ensure we only get form fields
+            const formData = new FormData();
+            
+            // Only include fields that are actually in our form
+            const allowedFields = [
+                '_token', 'gender', 'phone', 'dob', 'address', 'city', 
+                'state', 'country', 'institute_id', 'timezone_id', 'about'
+            ];
+            
+            // Add each allowed field to the FormData
+            allowedFields.forEach(function(field) {
+                const $field = $form.find('[name="' + field + '"]');
+                if ($field.length) {
+                    if ($field.is('select')) {
+                        formData.append(field, $field.val() || '');
+                    } else if ($field.attr('type') === 'checkbox' || $field.attr('type') === 'radio') {
+                        if ($field.is(':checked')) {
+                            formData.append(field, $field.val() || '');
+                        }
+                    } else {
+                        formData.append(field, $field.val() || '');
+                    }
+                }
+            });
+            
+            // Submit via AJAX with explicit content type and processData/contentType false for FormData
+            $.ajax({
+                url: '{{ route("profile.completion.update") }}',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Update completion percentage
+                        if (response.completion_percentage !== undefined) {
+                            $('#completion-percentage').text(response.completion_percentage + '%');
+                            $('#completion-progress')
+                                .css('width', response.completion_percentage + '%')
+                                .attr('aria-valuenow', response.completion_percentage);
+                        }
+                        
+                        // Show success message
+                        alert('Profile updated successfully!');
+                        
+                        // Redirect if profile is complete
+                        if (response.is_complete && response.redirect_url) {
+                            window.location.href = response.redirect_url;
+                        }
+                    } else {
+                        // Show error message
+                        alert(response.message || 'An error occurred. Please try again.');
+                    }
+                },
+                error: function(xhr) {
+                    // Handle validation errors
+                    if (xhr.status === 422) {
+                        const errors = xhr.responseJSON.errors;
+                        Object.keys(errors).forEach(field => {
+                            const $field = $(`#${field}`);
+                            const $error = $(`#${field}-error`);
+                            $field.addClass('is-invalid');
+                            $error.text(errors[field][0]);
+                        });
+                    } else {
+                        alert('An error occurred. Please try again.');
+                    }
+                },
+                complete: function() {
+                    // Re-enable form and reset state
+                    isSubmitting = false;
+                    $submitBtn.prop('disabled', false);
+                    $spinner.addClass('d-none');
+                    $submitBtn.html(originalBtnText);
+                }
+            });
+        });
+        });
+    })(jQuery);
     </script>
 
