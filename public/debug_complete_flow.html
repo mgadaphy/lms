@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Complete Flow Debug</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; font-family: monospace; max-height: 300px; overflow-y: auto; }
+        select { width: 300px; margin: 10px 0; padding: 8px; }
+        button { padding: 8px 16px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        .warning { color: #ffc107; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Complete Flow Debug</h1>
+    
+    <div class="test-section">
+        <h3>Step 1: Test Database Connection & Countries</h3>
+        <button onclick="testCountries()">Test Countries Loading</button>
+        <div id="countries-result" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 2: Test Direct AJAX Calls</h3>
+        <button onclick="testDirectStates()">Test States for Cameroon (ID=38)</button>
+        <button onclick="testDirectCities()">Test Cities for State 659</button>
+        <div id="direct-result" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 3: Test Manual Dropdowns</h3>
+        <label>Country:</label>
+        <select id="country">
+            <option value="">Select Country</option>
+        </select>
+        
+        <br>
+        <label>State:</label>
+        <select id="state">
+            <option value="">Select State</option>
+        </select>
+        
+        <br>
+        <label>City:</label>
+        <select id="city">
+            <option value="">Select City</option>
+        </select>
+        
+        <div id="manual-result" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Step 4: Test Database Queries</h3>
+        <button onclick="testDatabaseQueries()">Test Database Queries</button>
+        <div id="db-result" class="log"></div>
+    </div>
+    
+    <script>
+        function log(message, target, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'success' : type === 'error' ? 'error' : type === 'warning' ? 'warning' : '';
+            const className = color ? ` class="${color}"` : '';
+            $('#' + target).append(`<div${className}>[${timestamp}] ${message}</div>`);
+            $('#' + target).scrollTop($('#' + target)[0].scrollHeight);
+        }
+        
+        function testCountries() {
+            log('Testing countries loading...', 'countries-result');
+            
+            $.ajax({
+                url: '/standalone_profile_completion.php',
+                method: 'GET',
+                success: function(data) {
+                    log('SUCCESS: Countries page loaded', 'countries-result', 'success');
+                    // Extract countries from the page
+                    const countryOptions = $(data).find('#country option');
+                    log(`Found ${countryOptions.length} country options`, 'countries-result');
+                    countryOptions.each(function() {
+                        const value = $(this).val();
+                        const text = $(this).text();
+                        if (value) {
+                            log(`Country: ${value} - ${text}`, 'countries-result');
+                        }
+                    });
+                },
+                error: function(xhr, status, error) {
+                    log('ERROR: ' + status + ' - ' + error, 'countries-result', 'error');
+                    log('Response: ' + xhr.responseText, 'countries-result', 'error');
+                }
+            });
+        }
+        
+        function testDirectStates() {
+            log('Testing direct states AJAX...', 'direct-result');
+            
+            $.ajax({
+                url: '/ajax_states.php',
+                method: 'GET',
+                data: { id: 38, search: '' },
+                success: function(data) {
+                    log('SUCCESS: States response received', 'direct-result', 'success');
+                    log('Response: ' + JSON.stringify(data, null, 2), 'direct-result');
+                },
+                error: function(xhr, status, error) {
+                    log('ERROR: ' + status + ' - ' + error, 'direct-result', 'error');
+                    log('Response: ' + xhr.responseText, 'direct-result', 'error');
+                }
+            });
+        }
+        
+        function testDirectCities() {
+            log('Testing direct cities AJAX...', 'direct-result');
+            
+            $.ajax({
+                url: '/ajax_cities.php',
+                method: 'GET',
+                data: { id: 659, search: '' },
+                success: function(data) {
+                    log('SUCCESS: Cities response received', 'direct-result', 'success');
+                    log('Response: ' + JSON.stringify(data, null, 2), 'direct-result');
+                },
+                error: function(xhr, status, error) {
+                    log('ERROR: ' + status + ' - ' + error, 'direct-result', 'error');
+                    log('Response: ' + xhr.responseText, 'direct-result', 'error');
+                }
+            });
+        }
+        
+        function testDatabaseQueries() {
+            log('Testing database queries...', 'db-result');
+            
+            // Test countries query
+            $.ajax({
+                url: '/test_db_query.php',
+                method: 'GET',
+                data: { query: 'countries' },
+                success: function(data) {
+                    log('SUCCESS: Database test completed', 'db-result', 'success');
+                    log('Response: ' + JSON.stringify(data, null, 2), 'db-result');
+                },
+                error: function(xhr, status, error) {
+                    log('ERROR: ' + status + ' - ' + error, 'db-result', 'error');
+                }
+            });
+        }
+        
+        $(document).ready(function() {
+            log('Page loaded, starting tests...', 'manual-result');
+            
+            // Load countries into dropdown
+            $.ajax({
+                url: '/standalone_profile_completion.php',
+                method: 'GET',
+                success: function(data) {
+                    const countryOptions = $(data).find('#country option');
+                    $('#country').html(countryOptions);
+                    log(`Loaded ${countryOptions.length} countries into dropdown`, 'manual-result', 'success');
+                },
+                error: function() {
+                    log('Failed to load countries', 'manual-result', 'error');
+                }
+            });
+            
+            // Country change event
+            $('#country').on('change', function() {
+                const countryId = $(this).val();
+                const countryName = $(this).find(':selected').text();
+                log(`Country changed to: ${countryId} (${countryName})`, 'manual-result');
+                
+                if (countryId) {
+                    // Load states for this country
+                    $.ajax({
+                        url: '/ajax_states.php',
+                        method: 'GET',
+                        data: { id: countryId, search: '' },
+                        success: function(data) {
+                            log(`States loaded: ${data.results.length} states found`, 'manual-result', 'success');
+                            $('#state').html('<option value="">Select State</option>');
+                            data.results.forEach(function(state) {
+                                $('#state').append(`<option value="${state.id}">${state.text}</option>`);
+                            });
+                        },
+                        error: function(xhr, status, error) {
+                            log(`Failed to load states: ${error}`, 'manual-result', 'error');
+                        }
+                    });
+                } else {
+                    $('#state').html('<option value="">Select State</option>');
+                    $('#city').html('<option value="">Select City</option>');
+                }
+            });
+            
+            // State change event
+            $('#state').on('change', function() {
+                const stateId = $(this).val();
+                const stateName = $(this).find(':selected').text();
+                log(`State changed to: ${stateId} (${stateName})`, 'manual-result');
+                
+                if (stateId) {
+                    // Load cities for this state
+                    $.ajax({
+                        url: '/ajax_cities.php',
+                        method: 'GET',
+                        data: { id: stateId, search: '' },
+                        success: function(data) {
+                            log(`Cities loaded: ${data.results.length} cities found`, 'manual-result', 'success');
+                            $('#city').html('<option value="">Select City</option>');
+                            data.results.forEach(function(city) {
+                                $('#city').append(`<option value="${city.id}">${city.text}</option>`);
+                            });
+                        },
+                        error: function(xhr, status, error) {
+                            log(`Failed to load cities: ${error}`, 'manual-result', 'error');
+                        }
+                    });
+                } else {
+                    $('#city').html('<option value="">Select City</option>');
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

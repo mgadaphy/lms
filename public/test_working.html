@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Working Profile Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .result { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; font-family: monospace; }
+        button { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        .success { color: #28a745; }
+        .error { color: #dc3545; }
+        select { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h1>✅ Working Profile Completion Test</h1>
+    
+    <div class="test">
+        <h3>Test 1: Database Connection</h3>
+        <button onclick="testDatabase()">Test Database</button>
+        <div id="db-result" class="result"></div>
+    </div>
+    
+    <div class="test">
+        <h3>Test 2: Country → State → City Flow</h3>
+        <label>Country:</label>
+        <select id="country" onchange="loadStates()">
+            <option value="">Select Country</option>
+            <option value="38">Cameroon</option>
+            <option value="39">Canada</option>
+            <option value="1">Afghanistan</option>
+        </select>
+        
+        <br><br>
+        <label>State:</label>
+        <select id="state" onchange="loadCities()">
+            <option value="">Select State</option>
+        </select>
+        
+        <br><br>
+        <label>City:</label>
+        <select id="city">
+            <option value="">Select City</option>
+        </select>
+        
+        <div id="flow-result" class="result"></div>
+    </div>
+    
+    <script>
+        function log(message, target, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'success' ? 'success' : type === 'error' ? 'error' : '';
+            const className = color ? ` class="${color}"` : '';
+            $('#' + target).append(`<div${className}>[${timestamp}] ${message}</div>`);
+        }
+        
+        function testDatabase() {
+            log('Testing database connection...', 'db-result');
+            
+            $.ajax({
+                url: 'test_db_query.php',
+                method: 'GET',
+                data: { query: 'countries' },
+                success: function(data) {
+                    log('SUCCESS: Database connected!', 'db-result', 'success');
+                    log('Found ' + data.length + ' countries', 'db-result');
+                },
+                error: function(xhr, status, error) {
+                    log('ERROR: ' + status + ' - ' + error, 'db-result', 'error');
+                }
+            });
+        }
+        
+        function loadStates() {
+            const countryId = $('#country').val();
+            const countryName = $('#country').find(':selected').text();
+            log(`Country changed to: ${countryId} (${countryName})`, 'flow-result');
+            
+            if (countryId) {
+                log(`Loading states for country: ${countryId}`, 'flow-result');
+                $.ajax({
+                    url: 'ajax_states.php',
+                    method: 'GET',
+                    data: { id: countryId, search: '' },
+                    success: function(data) {
+                        log(`SUCCESS: ${data.results.length} states loaded`, 'flow-result', 'success');
+                        $('#state').html('<option value="">Select State</option>');
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach(function(state) {
+                                $('#state').append(`<option value="${state.id}">${state.text}</option>`);
+                            });
+                            log(`Populated state dropdown with ${data.results.length} options`, 'flow-result');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        log(`ERROR: Failed to load states - ${error}`, 'flow-result', 'error');
+                        log(`Response: ${xhr.responseText}`, 'flow-result', 'error');
+                    }
+                });
+            } else {
+                $('#state').html('<option value="">Select State</option>');
+                $('#city').html('<option value="">Select City</option>');
+            }
+        }
+        
+        function loadCities() {
+            const stateId = $('#state').val();
+            const stateName = $('#state').find(':selected').text();
+            log(`State changed to: ${stateId} (${stateName})`, 'flow-result');
+            
+            if (stateId) {
+                log(`Loading cities for state: ${stateId}`, 'flow-result');
+                $.ajax({
+                    url: 'ajax_cities.php',
+                    method: 'GET',
+                    data: { id: stateId, search: '' },
+                    success: function(data) {
+                        log(`SUCCESS: ${data.results.length} cities loaded`, 'flow-result', 'success');
+                        $('#city').html('<option value="">Select City</option>');
+                        if (data.results && data.results.length > 0) {
+                            data.results.forEach(function(city) {
+                                $('#city').append(`<option value="${city.id}">${city.text}</option>`);
+                            });
+                            log(`Populated city dropdown with ${data.results.length} options`, 'flow-result');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        log(`ERROR: Failed to load cities - ${error}`, 'flow-result', 'error');
+                        log(`Response: ${xhr.responseText}`, 'flow-result', 'error');
+                    }
+                });
+            } else {
+                $('#city').html('<option value="">Select City</option>');
+            }
+        }
+        
+        // Test database on page load
+        $(document).ready(function() {
+            log('Page loaded, testing database connection...', 'db-result');
+            testDatabase();
+        });
+    </script>
+</body>
+</html> 

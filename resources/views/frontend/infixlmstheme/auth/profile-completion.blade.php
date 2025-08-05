@@ -1,5 +1,4 @@
 @extends('frontend.infixlmstheme.layouts.master')
-
 @section('title'){{ __('Complete Your Profile') }} | {{ env('APP_NAME') }} @endsection
 
 @section('css')
@@ -146,30 +145,6 @@
                             <div class="row">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="state">{{ __('State/Province') }} <span class="text-danger">*</span></label>
-                                        <select name="state" id="state" class="form-control">
-                                            <option value="">{{ __('Select State') }}</option>
-                                            @if($user->state)
-                                                <option value="{{ $user->state }}" selected>{{ $user->state }}</option>
-                                            @endif
-                                        </select>
-                                        <span class="invalid-feedback" id="state-error"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="city">{{ __('City') }} <span class="text-danger">*</span></label>
-                                        <select name="city" id="city" class="form-control">
-                                            <option value="">{{ __('Select City') }}</option>
-                                            @if($user->city)
-                                                <option value="{{ $user->city }}" selected>{{ $user->city }}</option>
-                                            @endif
-                                        </select>
-                                        <span class="invalid-feedback" id="city-error"></span>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="form-group">
                                         <label for="country">{{ __('Country') }} <span class="text-danger">*</span></label>
                                         <select name="country" id="country" class="form-control select2">
                                             <option value="">{{ __('Select Country') }}</option>
@@ -180,6 +155,36 @@
                                             @endforeach
                                         </select>
                                         <span class="invalid-feedback" id="country-error"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="state">{{ __('State/Province') }} <span class="text-danger">*</span></label>
+                                        <select name="state" id="state" class="form-control">
+                                            <option value="">{{ __('Select State/Province') }}</option>
+                                            @if(isset($states) && count($states) > 0)
+                                                @foreach($states as $state)
+                                                    <option value="{{ $state->id }}" {{ old('state', $user->state) == $state->id ? 'selected' : '' }}>{{ $state->name }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        <span class="invalid-feedback" id="state-error"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="city">{{ __('City') }} <span class="text-danger">*</span></label>
+                                        <select name="city" id="city" class="form-control">
+                                            <option value="">{{ __('Select City') }}</option>
+                                            @if(isset($cities) && count($cities) > 0)
+                                                @foreach($cities as $city)
+                                                    <option value="{{ $city->id }}" {{ old('city', $user->city) == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
+                                                @endforeach
+                                            @endif
+                                        </select>
+                                        <span class="invalid-feedback" id="city-error"></span>
                                     </div>
                                 </div>
                             </div>
@@ -207,193 +212,180 @@
                                 <span class="invalid-feedback" id="about-error"></span>
                             </div>
 
-                            <div class="form-group text-center mt-4">
-                                <button type="submit" class="btn btn-primary" id="submit-btn">
-                                    <span id="submit-text">{{ __('Save & Continue') }}</span>
-                                    <span id="submit-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                </button>
+                            <!-- Debug Section: Current Selections -->
+                            <div class="card mt-4">
+                                <div class="card-header bg-warning text-dark font-weight-bold d-flex justify-content-between align-items-center">
+                                    <span>Debug Information</span>
+                                </div>
+                                <div class="card-body p-0" id="debug-container">
+                                    <div class="p-3 border-bottom">
+                                        <h6>Current Selections:</h6>
+                                        <div id="current-selections" class="mb-3">
+                                            <div>Country: <span id="debug-country">Not selected</span></div>
+                                            <div>State: <span id="debug-state">Not selected</span></div>
+                                            <div>City: <span id="debug-city">Not selected</span></div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-@endsection
 
-@push('script')
+    <!-- Load jQuery and Select2 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/jquery-migrate-3.4.0.min.js"></script>
     <script src="{{ asset('public/frontend/infixlmstheme/js/select2.min.js') }}"></script>
     <script>
-        $(document).ready(function() {
-            // Initialize select2
-            $('.select2').select2({
-                width: '100%'
-            });
+    $(document).ready(function() {
+        // Initialize Select2 for all relevant selects
+        $('#country, #state, #city, .select2').select2({ width: '100%' });
 
-            // Initialize state select2
-            $('#state').select2({
-                width: '100%',
-                placeholder: '{{ __("Select State") }}',
-                allowClear: true,
-                ajax: {
-                    url: '{{ route("profile.completion.getStates") }}',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            country_id: $('#country').val(),
-                            search: params.term
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data.results || []
-                        };
-                    },
-                    cache: true
-                },
-                escapeMarkup: function (markup) { return markup; },
-                minimumInputLength: 1
-            });
+        // Utility: update debug info
+        function updateSelections() {
+            let countryText = 'Not selected';
+            let stateText = 'Not selected';
+            let cityText = 'Not selected';
+            
+            // Get country text
+            const $country = $('#country');
+            if ($country.val()) {
+                const countryData = $country.select2('data');
+                countryText = countryData && countryData[0] ? countryData[0].text : $country.find('option:selected').text();
+            }
+            // Get state text
+            const $state = $('#state');
+            if ($state.val()) {
+                const stateData = $state.select2('data');
+                stateText = stateData && stateData[0] ? stateData[0].text : $state.find('option:selected').text();
+            }
+            // Get city text
+            const $city = $('#city');
+            if ($city.val()) {
+                const cityData = $city.select2('data');
+                cityText = cityData && cityData[0] ? cityData[0].text : $city.find('option:selected').text();
+            }
+            $('#debug-country').text(countryText);
+            $('#debug-state').text(stateText);
+            $('#debug-city').text(cityText);
+        }
 
-            // Initialize city select2
-            $('#city').select2({
-                width: '100%',
-                placeholder: '{{ __("Select City") }}',
-                allowClear: true,
-                ajax: {
-                    url: '{{ route("profile.completion.getCities") }}',
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        return {
-                            state_id: $('#state').val(),
-                            search: params.term
-                        };
-                    },
-                    processResults: function (data) {
-                        return {
-                            results: data.results || []
-                        };
-                    },
-                    cache: true
-                },
-                escapeMarkup: function (markup) { return markup; },
-                minimumInputLength: 1
-            });
-
-            // Load states when country changes
-            $('#country').on('change', function() {
-                let countryId = $(this).val();
-                let stateSelect = $('#state');
-                let citySelect = $('#city');
-
-                // Clear current states and cities
-                stateSelect.val(null).trigger('change');
-                citySelect.val(null).trigger('change');
-
-                if (countryId) {
-                    // Enable state select
-                    stateSelect.prop('disabled', false);
-                } else {
-                    stateSelect.prop('disabled', true);
-                    citySelect.prop('disabled', true);
-                }
-            });
-
-            // Load cities when state changes
-            $('#state').on('change', function() {
-                let stateId = $(this).val();
-                let citySelect = $('#city');
-
-                // Clear current cities
-                citySelect.val(null).trigger('change');
-
-                if (stateId) {
-                    // Enable city select
-                    citySelect.prop('disabled', false);
-                } else {
-                    citySelect.prop('disabled', true);
-                }
-            });
-
-            // Trigger country change if a country is already selected
-            @if(!empty($user->country))
-                $('#country').trigger('change');
-            @endif
-            @if(!empty($user->state))
-                $('#state').trigger('change');
-            @endif
-
-            // Handle form submission
-            $('#profile-completion-form').on('submit', function(e) {
-                e.preventDefault();
-
-                // Reset errors
-                $('.is-invalid').removeClass('is-invalid');
-                $('.invalid-feedback').text('');
-
-                // Show loading state
-                const submitBtn = $('#submit-btn');
-                const submitText = $('#submit-text');
-                const submitSpinner = $('#submit-spinner');
-
-                submitBtn.prop('disabled', true);
-                submitText.addClass('d-none');
-                submitSpinner.removeClass('d-none');
-
-                // Get form data
-                let formData = new FormData(this);
-
-                // Submit form via AJAX
-                $.ajax({
-                    url: '{{ route("profile.completion.update") }}',
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    headers: {
-                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            // Update progress bar
-                            $('#completion-percentage').text(response.completion_percentage + '%');
-                            $('#completion-progress').css('width', response.completion_percentage + '%')
-                                .attr('aria-valuenow', response.completion_percentage);
-
-                            // Show success message
-                            toastr.success(response.message);
-
-                            // Redirect if profile is complete
-                            if (response.is_complete && response.redirect_url) {
-                                setTimeout(function() {
-                                    window.location.href = response.redirect_url;
-                                }, 1500);
-                            }
+        // Load states for a given country
+        function loadStates(countryId, selectedStateId = null, callback = null) {
+            const $state = $('#state');
+            const $city = $('#city');
+            $state.prop('disabled', true).empty().append('<option value="">Select State</option>');
+            $city.prop('disabled', true).empty().append('<option value="">Select City</option>');
+            if (!countryId) {
+                $state.prop('disabled', false);
+                $city.prop('disabled', false);
+                updateSelections();
+                if (callback) callback();
+                return;
+            }
+            $.ajax({
+                url: '{{ route("profile.completion.getStates") }}',
+                type: 'GET',
+                data: { id: countryId },
+                dataType: 'json',
+                success: function(response) {
+                    $state.prop('disabled', false).empty().append('<option value="">Select State</option>');
+                    if (response.results && response.results.length > 0) {
+                        response.results.forEach(function(state) {
+                            $state.append(`<option value="${state.id}">${state.text}</option>`);
+                        });
+                        if (selectedStateId) {
+                            $state.val(selectedStateId).trigger('change.select2');
                         }
-                    },
-                    error: function(xhr) {
-                        if (xhr.status === 422) {
-                            // Validation errors
-                            let errors = xhr.responseJSON.errors;
-                            for (let field in errors) {
-                                $(`#${field}`).addClass('is-invalid');
-                                $(`#${field}-error`).text(errors[field][0]);
-                            }
-                        } else {
-                            // Other errors
-                            toastr.error('{{ __("Something went wrong. Please try again.") }}');
-                        }
-                    },
-                    complete: function() {
-                        // Reset button state
-                        submitBtn.prop('disabled', false);
-                        submitText.removeClass('d-none');
-                        submitSpinner.addClass('d-none');
                     }
-                });
+                    updateSelections();
+                    if (callback) callback();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading states:', error);
+                    $state.prop('disabled', false).html('<option value="">Error loading states</option>');
+                    updateSelections();
+                    if (callback) callback();
+                }
+            });
+        }
+
+        // Load cities for a given state
+        function loadCities(stateId, selectedCityId = null, callback = null) {
+            const $city = $('#city');
+            $city.prop('disabled', true).empty().append('<option value="">Select City</option>');
+            if (!stateId) {
+                $city.prop('disabled', false);
+                updateSelections();
+                if (callback) callback();
+                return;
+            }
+            $.ajax({
+                url: '{{ route("profile.completion.getCities") }}',
+                type: 'GET',
+                data: { id: stateId },
+                dataType: 'json',
+                success: function(response) {
+                    $city.prop('disabled', false).empty().append('<option value="">Select City</option>');
+                    if (response.results && response.results.length > 0) {
+                        response.results.forEach(function(city) {
+                            $city.append(`<option value="${city.id}">${city.text}</option>`);
+                        });
+                        if (selectedCityId) {
+                            $city.val(selectedCityId).trigger('change.select2');
+                        }
+                    }
+                    updateSelections();
+                    if (callback) callback();
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error loading cities:', error);
+                    $city.prop('disabled', false).html('<option value="">Error loading cities</option>');
+                    updateSelections();
+                    if (callback) callback();
+                }
+            });
+        }
+
+        // On country change
+        $('#country').on('change', function() {
+            const countryId = $(this).val();
+            // Clear state and city, then load new states
+            loadStates(countryId, null, function() {
+                // After loading states, city is always cleared
+                $('#city').val('').trigger('change.select2');
             });
         });
+
+        // On state change
+        $('#state').on('change', function() {
+            const stateId = $(this).val();
+            // Clear city, then load new cities
+            loadCities(stateId, null);
+        });
+
+        // On city change
+        $('#city').on('change', function() {
+            updateSelections();
+        });
+
+        // Initialize on page load
+        function initializeDropdowns() {
+            const initialCountry = $('#country').val();
+            const initialState = $('#state').val();
+            const initialCity = $('#city').val();
+            // If both state and city are prefilled, chain the loading
+            if (initialCountry) {
+                loadStates(initialCountry, initialState, function() {
+                    if (initialState) {
+                        loadCities(initialState, initialCity);
+                    } else {
+                        updateSelections();
+                    }
+                });
+            } else {
+                updateSelections();
+            }
+        }
+        // Wait for Select2 to be fully initialized
+        setTimeout(initializeDropdowns, 100);
+    });
     </script>
-@endpush
+

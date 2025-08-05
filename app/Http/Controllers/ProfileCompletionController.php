@@ -33,11 +33,35 @@ class ProfileCompletionController extends Controller
             return redirect()->route('student.dashboard');
         }
 
+        // Get initial states and cities if user has country/state selected
+        $states = collect();
+        $cities = collect();
+        
+        if ($user->country) {
+            try {
+                $states = DB::table('states')
+                    ->select('id', 'name')
+                    ->where('country_id', $user->country)
+                    ->get();
+                    
+                if ($user->state) {
+                    $cities = DB::table('spn_cities')
+                        ->select('id', 'name')
+                        ->where('state_id', $user->state)
+                        ->get();
+                }
+            } catch (\Exception $e) {
+                Log::warning('Could not fetch initial states/cities: ' . $e->getMessage());
+            }
+        }
+
         $data = [
             'user' => $user,
             'countries' => Country::all(),
             'institutes' => Institute::all(['id', 'name']),
             'completionPercentage' => $this->calculateProfileCompletion($user),
+            'states' => $states,
+            'cities' => $cities,
         ];
 
         return view('frontend.infixlmstheme.auth.profile-completion', $data);
@@ -172,42 +196,29 @@ class ProfileCompletionController extends Controller
     public function getStates(Request $request)
     {
         try {
-            $countryId = $request->input('country_id');
+            $countryId = $request->input('id');
 
             if (!$countryId) {
                 return response()->json(['results' => []]);
             }
 
-            // Try to get states from the database if the table exists
-            try {
-                $states = DB::table('states')
-                    ->select('id', 'name')
-                    ->where('name', 'like', '%' . $request->search . '%')
-                    ->where('country_id', $countryId)
-                    ->paginate(10);
+            // Get states from the database
+            $states = DB::table('states')
+                ->select('id', 'name')
+                ->where('name', 'like', '%' . ($request->search ?? '') . '%')
+                ->where('country_id', $countryId)
+                ->get();
 
-                $response = [];
-                foreach ($states as $item) {
-                    $response[] = [
-                        'id' => $item->id,
-                        'text' => $item->name
-                    ];
-                }
-                
-                $data['results'] = $response;
-                if (count($response) == 0) {
-                    $data['pagination'] = ["more" => false];
-                } else {
-                    $data['pagination'] = ["more" => true];
-                }
-                
-                return response()->json($data);
-
-            } catch (\Exception $e) {
-                // If there's an error (like table doesn't exist), we'll fall through to the empty response
-                Log::warning('Could not fetch states: ' . $e->getMessage());
-                return response()->json(['results' => []]);
+            $response = [];
+            foreach ($states as $item) {
+                $response[] = [
+                    'id' => $item->id,
+                    'text' => $item->name
+                ];
             }
+            
+            return response()->json(['results' => $response]);
+
         } catch (\Exception $e) {
             Log::error('Error in getStates: ' . $e->getMessage());
             return response()->json(['results' => []]);
@@ -220,42 +231,29 @@ class ProfileCompletionController extends Controller
     public function getCities(Request $request)
     {
         try {
-            $stateId = $request->input('state_id');
+            $stateId = $request->input('id');
 
             if (!$stateId) {
                 return response()->json(['results' => []]);
             }
 
-            // Try to get cities from the database if the table exists
-            try {
-                $cities = DB::table('spn_cities')
-                    ->select('id', 'name')
-                    ->where('name', 'like', '%' . $request->search . '%')
-                    ->where('state_id', $stateId)
-                    ->paginate(10);
+            // Get cities from the database
+            $cities = DB::table('spn_cities')
+                ->select('id', 'name')
+                ->where('name', 'like', '%' . ($request->search ?? '') . '%')
+                ->where('state_id', $stateId)
+                ->get();
 
-                $response = [];
-                foreach ($cities as $item) {
-                    $response[] = [
-                        'id' => $item->id,
-                        'text' => $item->name
-                    ];
-                }
-                
-                $data['results'] = $response;
-                if (count($response) == 0) {
-                    $data['pagination'] = ["more" => false];
-                } else {
-                    $data['pagination'] = ["more" => true];
-                }
-                
-                return response()->json($data);
-
-            } catch (\Exception $e) {
-                // If there's an error (like table doesn't exist), we'll fall through to the empty response
-                Log::warning('Could not fetch cities: ' . $e->getMessage());
-                return response()->json(['results' => []]);
+            $response = [];
+            foreach ($cities as $item) {
+                $response[] = [
+                    'id' => $item->id,
+                    'text' => $item->name
+                ];
             }
+            
+            return response()->json(['results' => $response]);
+
         } catch (\Exception $e) {
             Log::error('Error in getCities: ' . $e->getMessage());
             return response()->json(['results' => []]);

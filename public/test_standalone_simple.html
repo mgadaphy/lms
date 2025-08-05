@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Standalone Test</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        .log { background: #f5f5f5; padding: 10px; margin: 10px 0; border-radius: 3px; font-family: monospace; }
+        select { width: 300px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Simple Standalone Test</h1>
+    
+    <div class="test-section">
+        <h3>Test 1: Direct AJAX Call</h3>
+        <button onclick="testDirectAjax()">Test Direct AJAX to /ajax_states.php?id=38</button>
+        <div id="direct-result" class="log"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>Test 2: Select2 with AJAX</h3>
+        <label>Country:</label>
+        <select id="country">
+            <option value="">Select Country</option>
+            <option value="38">Cameroon</option>
+            <option value="39">Canada</option>
+        </select>
+        
+        <br>
+        <label>State:</label>
+        <select id="state" class="stateList">
+            <option value="">Select State</option>
+        </select>
+        
+        <div id="select2-log" class="log"></div>
+    </div>
+    
+    <script>
+        function log(message, target = 'select2-log') {
+            const timestamp = new Date().toLocaleTimeString();
+            $('#' + target).append(`[${timestamp}] ${message}<br>`);
+            $('#' + target).scrollTop($('#' + target)[0].scrollHeight);
+        }
+        
+        function testDirectAjax() {
+            log('Testing direct AJAX call...', 'direct-result');
+            
+            $.ajax({
+                url: '/ajax_states.php',
+                method: 'GET',
+                data: { id: 38, search: '' },
+                success: function(data) {
+                    log('SUCCESS: ' + JSON.stringify(data), 'direct-result');
+                },
+                error: function(xhr, status, error) {
+                    log('ERROR: ' + status + ' - ' + error, 'direct-result');
+                    log('Response: ' + xhr.responseText, 'direct-result');
+                }
+            });
+        }
+        
+        $(document).ready(function() {
+            log('Page loaded, initializing Select2...');
+            
+            // Initialize state select2
+            $('.stateList').select2({
+                ajax: {
+                    url: '/ajax_states.php',
+                    type: "GET",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        var countryId = $('#country').find(':selected').val();
+                        log(`State AJAX request - Country ID: ${countryId}`);
+                        return {
+                            search: params.term,
+                            page: params.page || 1,
+                            id: countryId,
+                        }
+                    },
+                    success: function(data) {
+                        log(`State AJAX success: ${JSON.stringify(data)}`);
+                    },
+                    error: function(xhr, status, error) {
+                        log(`State AJAX error: ${status} - ${error}`);
+                        log(`Response: ${xhr.responseText}`);
+                    },
+                    cache: false
+                }
+            });
+            
+            // Country change event
+            $('#country').on('change', function() {
+                var countryId = $(this).val();
+                var countryName = $(this).find(':selected').text();
+                log(`Country changed to: ${countryId} (${countryName})`);
+                
+                $('.stateList').val(null).trigger('change');
+            });
+        });
+    </script>
+</body>
+</html> 

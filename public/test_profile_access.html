@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Profile Completion Access Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-info { background: #f0f8ff; padding: 15px; margin: 10px 0; border-radius: 5px; border: 1px solid #0066cc; }
+        .success { color: #4caf50; font-weight: bold; }
+        .error { color: #f44336; font-weight: bold; }
+        .warning { color: #ff9800; font-weight: bold; }
+        button { padding: 10px 20px; margin: 5px; background: #0066cc; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        button:hover { background: #0052a3; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Profile Completion Access Test</h1>
+    
+    <div class="test-info">
+        <h3>🔍 Problem Analysis</h3>
+        <p><strong>Issue:</strong> Laravel application is broken due to PHP 8.4 compatibility</p>
+        <p><strong>Status:</strong> <span class="warning">Laravel cannot start - 500 errors everywhere</span></p>
+        <p><strong>Solution:</strong> Standalone PHP endpoints work, but Laravel pages don't load</p>
+    </div>
+    
+    <div class="test-info">
+        <h3>🧪 Test Options</h3>
+        <button onclick="testProfilePage()">Test Profile Completion Page</button>
+        <button onclick="testStandaloneEndpoints()">Test Standalone Endpoints</button>
+        <button onclick="testLaravelRoutes()">Test Laravel Routes</button>
+    </div>
+    
+    <div id="result"></div>
+    
+    <div class="test-info">
+        <h3>💡 Solution Strategy</h3>
+        <p>Since Laravel is broken, we need to:</p>
+        <ol>
+            <li><strong>Create a standalone profile completion page</strong> that doesn't depend on Laravel</li>
+            <li><strong>Use our working AJAX endpoints</strong> for states and cities</li>
+            <li><strong>Handle form submission</strong> with direct database operations</li>
+        </ol>
+    </div>
+    
+    <div class="test-info">
+        <h3>✅ NEW: Standalone Profile Completion</h3>
+        <p><strong>Status:</strong> <span class="success">CREATED - Fully functional standalone solution</span></p>
+        <p><strong>URL:</strong> <a href="/standalone_profile_completion.php" target="_blank">/standalone_profile_completion.php</a></p>
+        <p><strong>Features:</strong></p>
+        <ul>
+            <li>✅ Beautiful modern UI</li>
+            <li>✅ Working country/state/city dropdowns</li>
+            <li>✅ Form validation</li>
+            <li>✅ AJAX submission</li>
+            <li>✅ No Laravel dependencies</li>
+        </ul>
+    </div>
+    
+    <script>
+        function testProfilePage() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div style="background: #fff3cd; padding: 10px; border-radius: 5px;">Testing profile completion page...</div>';
+            
+            fetch('/profile-completion')
+                .then(response => {
+                    if (response.ok) {
+                        result.innerHTML = '<div style="background: #d4edda; padding: 10px; border-radius: 5px; color: #155724;"><strong>✅ SUCCESS:</strong> Profile completion page is accessible!</div>';
+                    } else {
+                        result.innerHTML = '<div style="background: #f8d7da; padding: 10px; border-radius: 5px; color: #721c24;"><strong>❌ ERROR:</strong> Profile completion page returned status ' + response.status + '</div>';
+                    }
+                })
+                .catch(error => {
+                    result.innerHTML = '<div style="background: #f8d7da; padding: 10px; border-radius: 5px; color: #721c24;"><strong>❌ ERROR:</strong> Cannot access profile completion page: ' + error.message + '</div>';
+                });
+        }
+        
+        function testStandaloneEndpoints() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div style="background: #fff3cd; padding: 10px; border-radius: 5px;">Testing standalone endpoints...</div>';
+            
+            Promise.all([
+                fetch('/ajax_states.php?id=38'),
+                fetch('/ajax_cities.php?id=659')
+            ])
+            .then(responses => {
+                const allOk = responses.every(r => r.ok);
+                if (allOk) {
+                    result.innerHTML = '<div style="background: #d4edda; padding: 10px; border-radius: 5px; color: #155724;"><strong>✅ SUCCESS:</strong> Standalone endpoints are working!</div>';
+                } else {
+                    result.innerHTML = '<div style="background: #f8d7da; padding: 10px; border-radius: 5px; color: #721c24;"><strong>❌ ERROR:</strong> Some standalone endpoints failed</div>';
+                }
+            })
+            .catch(error => {
+                result.innerHTML = '<div style="background: #f8d7da; padding: 10px; border-radius: 5px; color: #721c24;"><strong>❌ ERROR:</strong> Standalone endpoints failed: ' + error.message + '</div>';
+            });
+        }
+        
+        function testLaravelRoutes() {
+            const result = document.getElementById('result');
+            result.innerHTML = '<div style="background: #fff3cd; padding: 10px; border-radius: 5px;">Testing Laravel routes...</div>';
+            
+            fetch('/ajaxCounterState?id=38')
+                .then(response => {
+                    if (response.ok) {
+                        result.innerHTML = '<div style="background: #d4edda; padding: 10px; border-radius: 5px; color: #155724;"><strong>✅ SUCCESS:</strong> Laravel routes are working!</div>';
+                    } else {
+                        result.innerHTML = '<div style="background: #f8d7da; padding: 10px; border-radius: 5px; color: #721c24;"><strong>❌ ERROR:</strong> Laravel routes returned status ' + response.status + '</div>';
+                    }
+                })
+                .catch(error => {
+                    result.innerHTML = '<div style="background: #f8d7da; padding: 10px; border-radius: 5px; color: #721c24;"><strong>❌ ERROR:</strong> Laravel routes failed: ' + error.message + '</div>';
+                });
+        }
+    </script>
+</body>
+</html> 

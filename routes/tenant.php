@@ -98,7 +98,11 @@ Route::group(['namespace' => 'Frontend'], function () {
     Route::get('profile-completion', '\App\Http\Controllers\ProfileCompletionController@show')->name('profile.completion.show');
     Route::post('profile-completion/update', '\App\Http\Controllers\ProfileCompletionController@update')->name('profile.completion.update');
     Route::get('profile-completion/get-states', '\App\Http\Controllers\ProfileCompletionController@getStates')->name('profile.completion.getStates');
-    Route::get('profile-completion/get-cities', '\App\Http\Controllers\ProfileCompletionController@getCities')->name('profile.completion.getCities');
+    // Profile completion AJAX endpoints
+Route::get('ajax/get-states', 'Frontend\WebsiteController@ajaxCounterState')->name('ajaxCounterState');
+Route::get('ajax/get-cities', 'Frontend\WebsiteController@ajaxCounterCity')->name('ajaxCounterCity');
+
+Route::get('profile-completion/get-cities', '\App\Http\Controllers\ProfileCompletionController@getCities')->name('profile.completion.getCities');
     
     Route::get('/home/removeItem/{id}', 'WebsiteController@removeItem')->name('removeItem');
     Route::get('/home/removeItemAjax/{id}', 'WebsiteController@removeItemAjax')->name('removeItemAjax');
