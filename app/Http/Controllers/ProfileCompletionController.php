@@ -175,7 +175,7 @@ class ProfileCompletionController extends Controller
             'message' => 'Profile updated successfully',
             'is_complete' => $isComplete,
             'completion_percentage' => $completionPercentage,
-            'redirect_url' => $isComplete ? '/student-dashboard' : null,
+            'redirect_url' => $isComplete ? url('/student-dashboard') : null,
         ])->header('Content-Type', 'application/json');
     }
 
