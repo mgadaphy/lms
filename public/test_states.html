@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test States Loading</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        select { width: 100%; padding: 8px; }
+        .result { margin-top: 20px; border: 1px solid #ddd; padding: 15px; }
+        pre { background: #f5f5f5; padding: 10px; overflow: auto; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Test States Loading</h1>
+
+        <div class="form-group">
+            <label for="country">Country:</label>
+            <select id="country">
+                <option value="">Select Country</option>
+                <option value="38">Canada</option>
+                <option value="231">United States</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="state">State:</label>
+            <select id="state" disabled>
+                <option value="">Select State</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <button id="test-button" type="button">Test Load States</button>
+            <button id="direct-url-test" type="button">Test Direct URL</button>
+        </div>
+
+        <div class="result">
+            <h3>Debug Information</h3>
+            <div id="debug"></div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Function to load states
+            function loadStates(countryId) {
+                const $state = $('#state');
+                const $debug = $('#debug');
+
+                $debug.html('<div>Loading states for country ID: ' + countryId + '</div>');
+                $state.prop('disabled', true).empty().append('<option value="">Select State</option>');
+
+                if (!countryId) {
+                    $state.prop('disabled', false);
+                    return;
+                }
+
+                // Test with the standalone script
+                $.ajax({
+                    url: 'ajax_states.php',
+                    type: 'GET',
+                    data: { id: countryId },
+                    dataType: 'json',
+                    success: function(response) {
+                        $debug.append('<div class="success">Success! Received response:</div>');
+                        $debug.append('<pre>' + JSON.stringify(response, null, 2) + '</pre>');
+
+                        $state.prop('disabled', false);
+                        if (response.results && response.results.length > 0) {
+                            response.results.forEach(function(state) {
+                                $state.append(`<option value="${state.id}">${state.text}</option>`);
+                            });
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        $debug.append('<div class="error">Error loading states: ' + error + '</div>');
+                        $debug.append('<div>Status: ' + status + '</div>');
+                        $debug.append('<div>Response Text: ' + xhr.responseText + '</div>');
+                        $state.prop('disabled', false).html('<option value="">Error loading states</option>');
+                    }
+                });
+            }
+
+            // On country change
+            $('#country').on('change', function() {
+                const countryId = $(this).val();
+                loadStates(countryId);
+            });
+
+            // Manual test button
+            $('#test-button').on('click', function() {
+                const countryId = $('#country').val();
+                loadStates(countryId);
+            });
+
+            // Direct URL test button
+            $('#direct-url-test').on('click', function() {
+                const $debug = $('#debug');
+                $debug.html('<div>Testing direct URL access to ajax_states.php...</div>');
+
+                // Open the URL in a new tab/window
+                window.open('ajax_states.php?id=38', '_blank');
+
+                // Also make a fetch request to show the response in the debug area
+                fetch('ajax_states.php?id=38')
+                    .then(response => {
+                        $debug.append('<div>Fetch status: ' + response.status + '</div>');
+                        return response.text();
+                    })
+                    .then(text => {
+                        $debug.append('<div class="success">Raw response:</div>');
+                        $debug.append('<pre>' + text + '</pre>');
+
+                        try {
+                            const json = JSON.parse(text);
+                            $debug.append('<div class="success">Parsed JSON:</div>');
+                            $debug.append('<pre>' + JSON.stringify(json, null, 2) + '</pre>');
+                        } catch (e) {
+                            $debug.append('<div class="error">Failed to parse JSON: ' + e.message + '</div>');
+                        }
+                    })
+                    .catch(error => {
+                        $debug.append('<div class="error">Fetch error: ' + error.message + '</div>');
+                    });
+            });
+        });
+    </script>
+</body>
+</html>

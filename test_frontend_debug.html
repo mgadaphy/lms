@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Completion Debug Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 5px; }
+        .section h3 { margin-top: 0; color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select, input, button { padding: 8px; border: 1px solid #ddd; border-radius: 4px; width: 200px; }
+        button { background: #007bff; color: white; cursor: pointer; width: auto; padding: 10px 20px; }
+        button:hover { background: #0056b3; }
+        .log { background: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 4px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+        .error { color: #dc3545; }
+        .success { color: #28a745; }
+        .info { color: #17a2b8; }
+        .warning { color: #ffc107; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Profile Completion Debug Tool</h1>
+        <p>This tool helps debug the state/city loading issues in the profile completion form.</p>
+        
+        <div class="grid">
+            <div class="section">
+                <h3>1. AJAX Endpoint Tests</h3>
+                <div class="form-group">
+                    <label>Test States Endpoint:</label>
+                    <input type="number" id="countryId" value="1" placeholder="Country ID">
+                    <button onclick="testStatesEndpoint()">Test Get States</button>
+                </div>
+                <div class="form-group">
+                    <label>Test Cities Endpoint:</label>
+                    <input type="number" id="stateId" value="42" placeholder="State ID">
+                    <button onclick="testCitiesEndpoint()">Test Get Cities</button>
+                </div>
+                <div class="form-group">
+                    <button onclick="testFixAjaxRoutes()">Test fix_ajax_routes.php</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>2. Dropdown Simulation</h3>
+                <div class="form-group">
+                    <label>Country:</label>
+                    <select id="countrySelect" onchange="onCountryChange()">
+                        <option value="">Select Country</option>
+                        <option value="1">Afghanistan</option>
+                        <option value="31">Cameroon</option>
+                        <option value="99">Iceland</option>
+                        <option value="225">United Arab Emirates</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>State:</label>
+                    <select id="stateSelect" onchange="onStateChange()">
+                        <option value="">Select State</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>City:</label>
+                    <select id="citySelect">
+                        <option value="">Select City</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h3>3. Debug Log</h3>
+            <button onclick="clearLog()">Clear Log</button>
+            <div id="debugLog" class="log"></div>
+        </div>
+        
+        <div class="section">
+            <h3>4. Network Analysis</h3>
+            <button onclick="analyzeNetwork()">Analyze Network Requests</button>
+            <div id="networkLog" class="log"></div>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type;
+            logEntry.innerHTML = `[${timestamp}] ${message}`;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+        
+        function clearLog() {
+            document.getElementById('debugLog').innerHTML = '';
+            document.getElementById('networkLog').innerHTML = '';
+        }
+        
+        async function makeRequest(url, description) {
+            log(`Making request to: ${url}`, 'info');
+            try {
+                const response = await fetch(url);
+                log(`Response status: ${response.status} ${response.statusText}`, response.ok ? 'success' : 'error');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                log(`${description} - Success: ${JSON.stringify(data).substring(0, 200)}...`, 'success');
+                return data;
+            } catch (error) {
+                log(`${description} - Error: ${error.message}`, 'error');
+                return null;
+            }
+        }
+        
+        async function testStatesEndpoint() {
+            const countryId = document.getElementById('countryId').value;
+            if (!countryId) {
+                log('Please enter a country ID', 'warning');
+                return;
+            }
+            
+            const url = `/profile-completion/get-states?id=${countryId}`;
+            const data = await makeRequest(url, 'States Endpoint Test');
+            
+            if (data) {
+                log(`Found ${data.length} states for country ${countryId}`, 'success');
+            }
+        }
+        
+        async function testCitiesEndpoint() {
+            const stateId = document.getElementById('stateId').value;
+            if (!stateId) {
+                log('Please enter a state ID', 'warning');
+                return;
+            }
+            
+            const url = `/profile-completion/get-cities?id=${stateId}`;
+            const data = await makeRequest(url, 'Cities Endpoint Test');
+            
+            if (data) {
+                log(`Found ${data.length} cities for state ${stateId}`, 'success');
+            }
+        }
+        
+        async function testFixAjaxRoutes() {
+             const url = '/lms/fix_ajax_routes.php?action=get_states&country_id=1';
+             await makeRequest(url, 'Fix AJAX Routes Test');
+         }
+        
+        async function onCountryChange() {
+            const countrySelect = document.getElementById('countrySelect');
+            const stateSelect = document.getElementById('stateSelect');
+            const citySelect = document.getElementById('citySelect');
+            
+            // Clear dependent dropdowns
+            stateSelect.innerHTML = '<option value="">Select State</option>';
+            citySelect.innerHTML = '<option value="">Select City</option>';
+            
+            const countryId = countrySelect.value;
+            if (!countryId) {
+                log('Country cleared', 'info');
+                return;
+            }
+            
+            log(`Country changed to: ${countryId}`, 'info');
+            
+            // Load states
+            const url = `/profile-completion/get-states?id=${countryId}`;
+            const states = await makeRequest(url, 'Loading states for country change');
+            
+            if (states && states.length > 0) {
+                states.forEach(state => {
+                    const option = document.createElement('option');
+                    option.value = state.id;
+                    option.textContent = state.text;
+                    stateSelect.appendChild(option);
+                });
+                log(`Loaded ${states.length} states`, 'success');
+            } else {
+                log('No states found or error occurred', 'warning');
+            }
+        }
+        
+        async function onStateChange() {
+            const stateSelect = document.getElementById('stateSelect');
+            const citySelect = document.getElementById('citySelect');
+            
+            // Clear cities
+            citySelect.innerHTML = '<option value="">Select City</option>';
+            
+            const stateId = stateSelect.value;
+            if (!stateId) {
+                log('State cleared', 'info');
+                return;
+            }
+            
+            log(`State changed to: ${stateId}`, 'info');
+            
+            // Load cities
+            const url = `/profile-completion/get-cities?id=${stateId}`;
+            const cities = await makeRequest(url, 'Loading cities for state change');
+            
+            if (cities && cities.length > 0) {
+                cities.forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city.id;
+                    option.textContent = city.text;
+                    citySelect.appendChild(option);
+                });
+                log(`Loaded ${cities.length} cities`, 'success');
+            } else {
+                log('No cities found or error occurred', 'warning');
+            }
+        }
+        
+        function analyzeNetwork() {
+            const networkDiv = document.getElementById('networkLog');
+            networkDiv.innerHTML = '';
+            
+            // Check if we can access performance API
+            if (window.performance && window.performance.getEntriesByType) {
+                const entries = window.performance.getEntriesByType('resource');
+                const relevantEntries = entries.filter(entry => 
+                    entry.name.includes('get-states') || 
+                    entry.name.includes('get-cities') || 
+                    entry.name.includes('profile-completion')
+                );
+                
+                if (relevantEntries.length > 0) {
+                    relevantEntries.forEach(entry => {
+                        const logEntry = document.createElement('div');
+                        logEntry.innerHTML = `${entry.name} - Duration: ${entry.duration.toFixed(2)}ms - Size: ${entry.transferSize || 'N/A'} bytes`;
+                        networkDiv.appendChild(logEntry);
+                    });
+                } else {
+                    networkDiv.innerHTML = 'No relevant network requests found in performance timeline.';
+                }
+            } else {
+                networkDiv.innerHTML = 'Performance API not available for network analysis.';
+            }
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Profile Completion Debug Tool initialized', 'success');
+            log('Ready to test AJAX endpoints and dropdown functionality', 'info');
+        });
+    </script>
+</body>
+</html>

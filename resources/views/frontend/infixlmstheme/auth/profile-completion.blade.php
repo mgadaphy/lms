@@ -2,6 +2,7 @@
 @section('title'){{ __('Complete Your Profile') }} | {{ env('APP_NAME') }} @endsection
 
 @section('css')
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="stylesheet" href="{{ asset('public/frontend/infixlmstheme/css/select2.min.css') }}">
     <style>
         .progress {
@@ -84,7 +85,7 @@
                             </div>
                         </div>
 
-                        <form id="profile-completion-form" class="profile-completion-form" data-ajax-form="true">
+                        <form id="profile-completion-form" class="profile-completion-form" action="{{ route('profile.completion.update') }}" method="POST" data-ajax-form="true">
                             @csrf
 
 <div class="row">
@@ -160,7 +161,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="state">{{ __('State/Province') }} <span class="text-danger">*</span></label>
-                                        <select name="state" id="state" class="form-control">
+                                        <select name="state" id="state" class="form-control stateList">
                                             <option value="">{{ __('Select State/Province') }}</option>
                                             @if(isset($states) && count($states) > 0)
                                                 @foreach($states as $state)
@@ -176,7 +177,7 @@
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="city">{{ __('City') }} <span class="text-danger">*</span></label>
-                                        <select name="city" id="city" class="form-control">
+                                        <select name="city" id="city" class="form-control cityList">
                                             <option value="">{{ __('Select City') }}</option>
                                             @if(isset($cities) && count($cities) > 0)
                                                 @foreach($cities as $city)
@@ -219,281 +220,186 @@
                                     {{ __('Save Profile') }}
                                 </button>
                             </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endsection
 
-
-    <!-- Load jQuery and Select2 -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://code.jquery.com/jquery-migrate-3.4.0.min.js"></script>
-    <script src="{{ asset('public/frontend/infixlmstheme/js/select2.min.js') }}"></script>
+@push('js')
     <script>
-    // Use a self-executing function to prevent variable leaks
-    (function($) {
-        'use strict';
+        // AJAX CSRF setup
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name=_token]').attr('content')
+            }
+        });
         
-        // Store the form submission state to prevent double submission
-        var isSubmitting = false;
-        
-        // Initialize when document is ready
         $(document).ready(function() {
-        // Initialize Select2 for all relevant selects
-        $('#country, #state, #city, .select2').select2({ width: '100%' });
-
-        // Utility: update debug info
-        function updateSelections() {
-            let countryText = 'Not selected';
-            let stateText = 'Not selected';
-            let cityText = 'Not selected';
-
-            // Get country text
-            const $country = $('#country');
-            if ($country.val()) {
-                const countryData = $country.select2('data');
-                countryText = countryData && countryData[0] ? countryData[0].text : $country.find('option:selected').text();
-            }
-            // Get state text
-            const $state = $('#state');
-            if ($state.val()) {
-                const stateData = $state.select2('data');
-                stateText = stateData && stateData[0] ? stateData[0].text : $state.find('option:selected').text();
-            }
-            // Get city text
-            const $city = $('#city');
-            if ($city.val()) {
-                const cityData = $city.select2('data');
-                cityText = cityData && cityData[0] ? cityData[0].text : $city.find('option:selected').text();
-            }
-            $('#debug-country').text(countryText);
-            $('#debug-state').text(stateText);
-            $('#debug-city').text(cityText);
-        }
-
-        // Load states for a given country
-        function loadStates(countryId, selectedStateId = null, callback = null) {
-            const $state = $('#state');
-            const $city = $('#city');
-            $state.prop('disabled', true).empty().append('<option value="">Select State</option>');
-            $city.prop('disabled', true).empty().append('<option value="">Select City</option>');
-            if (!countryId) {
-                $state.prop('disabled', false);
-                $city.prop('disabled', false);
-                updateSelections();
-                if (callback) callback();
-                return;
-            }
-            $.ajax({
-                url: '{{ route("profile.completion.getStates") }}',
-                type: 'GET',
-                data: { id: countryId },
-                dataType: 'json',
-                success: function(response) {
-                    $state.prop('disabled', false).empty().append('<option value="">Select State</option>');
-                    if (response.results && response.results.length > 0) {
-                        response.results.forEach(function(state) {
-                            $state.append(`<option value="${state.id}">${state.text}</option>`);
-                        });
-                        if (selectedStateId) {
-                            $state.val(selectedStateId).trigger('change.select2');
+            // Initialize Select2 for dropdowns - using working implementation from user settings
+            
+            //city
+            $('.cityList').select2({
+                ajax: {
+                    url: '{{route('ajaxCounterCity')}}',
+                    type: "GET",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        var query = {
+                            search: params.term,
+                            page: params.page || 1,
+                            id: $('#state').find(':selected').val(),
                         }
-                    }
-                    updateSelections();
-                    if (callback) callback();
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error loading states:', error);
-                    $state.prop('disabled', false).html('<option value="">Error loading states</option>');
-                    updateSelections();
-                    if (callback) callback();
+                        return query;
+                    },
+                    cache: false
                 }
             });
-        }
-
-        // Load cities for a given state
-        function loadCities(stateId, selectedCityId = null, callback = null) {
-            const $city = $('#city');
-            $city.prop('disabled', true).empty().append('<option value="">Select City</option>');
-            if (!stateId) {
-                $city.prop('disabled', false);
-                updateSelections();
-                if (callback) callback();
-                return;
-            }
-            $.ajax({
-                url: '{{ route("profile.completion.getCities") }}',
-                type: 'GET',
-                data: { id: stateId },
-                dataType: 'json',
-                success: function(response) {
-                    $city.prop('disabled', false).empty().append('<option value="">Select City</option>');
-                    if (response.results && response.results.length > 0) {
-                        response.results.forEach(function(city) {
-                            $city.append(`<option value="${city.id}">${city.text}</option>`);
-                        });
-                        if (selectedCityId) {
-                            $city.val(selectedCityId).trigger('change.select2');
+            
+            //state
+            $('.stateList').select2({
+                ajax: {
+                    url: '{{route('ajaxCounterState')}}',
+                    type: "GET",
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        var query = {
+                            search: params.term,
+                            page: params.page || 1,
+                            id: $('#country').find(':selected').val(),
                         }
-                    }
-                    updateSelections();
-                    if (callback) callback();
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error loading cities:', error);
-                    $city.prop('disabled', false).html('<option value="">Error loading cities</option>');
-                    updateSelections();
-                    if (callback) callback();
+                        return query;
+                    },
+                    cache: false
                 }
             });
-        }
 
-        // On country change
-        $('#country').on('change', function() {
-            const countryId = $(this).val();
-            // Clear state and city, then load new states
-            loadStates(countryId, null, function() {
-                // After loading states, city is always cleared
-                $('#city').val('').trigger('change.select2');
+            //onchange country
+            $(document).on('change', '#country', function () {
+                $('.stateList').val(null).trigger('change');
+                $('.cityList').val(null).trigger('change');
             });
-        });
 
-        // On state change
-        $('#state').on('change', function() {
-            const stateId = $(this).val();
-            // Clear city, then load new cities
-            loadCities(stateId, null);
-        });
-
-        // On city change
-        $('#city').on('change', function() {
-            updateSelections();
-        });
-
-        // Initialize on page load
-        function initializeDropdowns() {
-            const initialCountry = $('#country').val();
-            const initialState = $('#state').val();
-            const initialCity = $('#city').val();
-            // If both state and city are prefilled, chain the loading
-            if (initialCountry) {
-                loadStates(initialCountry, initialState, function() {
-                    if (initialState) {
-                        loadCities(initialState, initialCity);
-                    } else {
-                        updateSelections();
+            //onchange state
+            $(document).on('change', '.stateList', function () {
+                $('.cityList').val(null).trigger('change');
+            });
+            
+            // Initialize other Select2 dropdowns
+            $('.select2').select2();
+            
+            // Setup CSRF token for AJAX requests
+            $.ajaxSetup({
+                headers: {
+                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                }
+            });
+            
+            // Handle form submission
+            $('#profile-completion-form').on('submit', function(e) {
+                e.preventDefault();
+                
+                const form = $(this);
+                const submitBtn = form.find('button[type="submit"]');
+                const originalText = submitBtn.text();
+                
+                // Clear previous errors
+                $('.invalid-feedback').remove();
+                $('.is-invalid').removeClass('is-invalid');
+                $('.alert').remove();
+                
+                // Show loading state
+                submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating Profile...');
+                
+                // Prepare form data
+                const formData = new FormData(form[0]);
+                
+                // Make AJAX request
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success message
+                            const alert = `
+                                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    ${response.message}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            `;
+                            form.prepend(alert);
+                            
+                            // Redirect after a short delay if profile is complete
+                            if (response.is_complete && response.redirect_url) {
+                                setTimeout(function() {
+                                    window.location.href = response.redirect_url;
+                                }, 1500);
+                            }
+                        } else {
+                            // Show error message
+                            const alert = `
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    ${response.message || 'An error occurred. Please try again.'}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            `;
+                            form.prepend(alert);
+                        }
+                        
+                        // Reset button
+                        submitBtn.prop('disabled', false).text(originalText);
+                        
+                        // Scroll to top
+                        $('html, body').animate({ scrollTop: 0 }, 300);
+                    },
+                    error: function(xhr) {
+                        // Reset button
+                        submitBtn.prop('disabled', false).text(originalText);
+                        
+                        if (xhr.status === 422) {
+                            // Handle validation errors
+                            const errors = xhr.responseJSON.errors;
+                            Object.keys(errors).forEach(function(field) {
+                                const input = $(`[name="${field}"]`);
+                                const errorMessage = errors[field][0];
+                                
+                                input.addClass('is-invalid');
+                                input.after(`<div class="invalid-feedback">${errorMessage}</div>`);
+                            });
+                            
+                            // Show general error message
+                            const alert = `
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    Please correct the errors below and try again.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            `;
+                            form.prepend(alert);
+                        } else {
+                            console.error('Profile update error:', xhr.responseText);
+                            const alert = `
+                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                    An error occurred. Please try again.
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            `;
+                            form.prepend(alert);
+                        }
+                        
+                        // Scroll to top
+                        $('html, body').animate({ scrollTop: 0 }, 300);
                     }
                 });
-            } else {
-                updateSelections();
-            }
-        }
-        // Wait for Select2 to be fully initialized
-        setTimeout(initializeDropdowns, 100);
-
-        // Form submission handler with namespace to prevent interference
-        $(document).off('submit.profile-completion', '#profile-completion-form')
-                  .on('submit.profile-completion', '#profile-completion-form', function(e) {
-            // Prevent default form submission and stop propagation
-            e.preventDefault();
-            e.stopImmediatePropagation();
-            
-            // Prevent double submission
-            if (isSubmitting) return false;
-            isSubmitting = true;
-            
-            // Show loading state
-            const $form = $(this);
-            const $submitBtn = $form.find('button[type="submit"]');
-            const $spinner = $submitBtn.find('.spinner-border');
-            const originalBtnText = $submitBtn.html();
-            
-            $submitBtn.prop('disabled', true);
-            $spinner.removeClass('d-none');
-            
-            // Clear previous errors
-            $form.find('.is-invalid').removeClass('is-invalid');
-            $form.find('.invalid-feedback').text('');
-            
-            // Get form data using FormData to ensure we only get form fields
-            const formData = new FormData();
-            
-            // Only include fields that are actually in our form
-            const allowedFields = [
-                '_token', 'gender', 'phone', 'dob', 'address', 'city', 
-                'state', 'country', 'institute_id', 'timezone_id', 'about'
-            ];
-            
-            // Add each allowed field to the FormData
-            allowedFields.forEach(function(field) {
-                const $field = $form.find('[name="' + field + '"]');
-                if ($field.length) {
-                    if ($field.is('select')) {
-                        formData.append(field, $field.val() || '');
-                    } else if ($field.attr('type') === 'checkbox' || $field.attr('type') === 'radio') {
-                        if ($field.is(':checked')) {
-                            formData.append(field, $field.val() || '');
-                        }
-                    } else {
-                        formData.append(field, $field.val() || '');
-                    }
-                }
-            });
-            
-            // Submit via AJAX with explicit content type and processData/contentType false for FormData
-            $.ajax({
-                url: '{{ route("profile.completion.update") }}',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // Update completion percentage
-                        if (response.completion_percentage !== undefined) {
-                            $('#completion-percentage').text(response.completion_percentage + '%');
-                            $('#completion-progress')
-                                .css('width', response.completion_percentage + '%')
-                                .attr('aria-valuenow', response.completion_percentage);
-                        }
-                        
-                        // Show success message
-                        alert('Profile updated successfully!');
-                        
-                        // Redirect if profile is complete
-                        if (response.is_complete && response.redirect_url) {
-                            window.location.href = response.redirect_url;
-                        }
-                    } else {
-                        // Show error message
-                        alert(response.message || 'An error occurred. Please try again.');
-                    }
-                },
-                error: function(xhr) {
-                    // Handle validation errors
-                    if (xhr.status === 422) {
-                        const errors = xhr.responseJSON.errors;
-                        Object.keys(errors).forEach(field => {
-                            const $field = $(`#${field}`);
-                            const $error = $(`#${field}-error`);
-                            $field.addClass('is-invalid');
-                            $error.text(errors[field][0]);
-                        });
-                    } else {
-                        alert('An error occurred. Please try again.');
-                    }
-                },
-                complete: function() {
-                    // Re-enable form and reset state
-                    isSubmitting = false;
-                    $submitBtn.prop('disabled', false);
-                    $spinner.addClass('d-none');
-                    $submitBtn.html(originalBtnText);
-                }
             });
         });
-        });
-    })(jQuery);
     </script>
+@endpush
 

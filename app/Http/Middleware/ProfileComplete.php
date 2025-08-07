@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\ProfileCompletionController;
 use Symfony\Component\HttpFoundation\Response;
 
 class ProfileComplete
@@ -33,33 +34,13 @@ class ProfileComplete
         }
         
         // Check if user is a student and profile is incomplete
-        if ($user && $user->role_id == 3 && !$this->isProfileComplete($user)) {
+        if ($user && $user->role_id == 3 && !ProfileCompletionController::isProfileComplete($user)) {
             return redirect()->route('profile.completion.show');
         }
         
         return $next($request);
     }
     
-    /**
-     * Check if user's profile is complete
-     */
-    protected function isProfileComplete($user)
-    {
-        $requiredFields = [
-            'phone', 'dob', 'address', 'city', 'country', 'gender'
-        ];
-
-        foreach ($requiredFields as $field) {
-            if (empty($user->$field)) {
-                return false;
-            }
-        }
-
-        $userInfo = $user->userInfo;
-        if (!$userInfo || !$userInfo->timezone_id) {
-            return false;
-        }
-
-        return true;
-    }
+    // Profile completion logic moved to ProfileCompletionController::isProfileComplete()
+    // This eliminates code duplication and ensures consistency
 }

@@ -194,24 +194,6 @@
                     imageChangeWithFile($(this)[0], '#cover_photo_show');
                 });
 
-                //city
-                $('.cityList').select2({
-                    ajax: {
-                        url: '{{route('ajaxCounterCity')}}',
-                        type: "GET",
-                        dataType: 'json',
-                        delay: 250,
-                        data: function (params) {
-                            var query = {
-                                search: params.term,
-                                page: params.page || 1,
-                                id: $('#state').find(':selected').val(),
-                            }
-                            return query;
-                        },
-                        cache: false
-                    }
-                });
                 //state
                 $('.stateList').select2({
                     ajax: {
@@ -224,6 +206,24 @@
                                 search: params.term,
                                 page: params.page || 1,
                                 id: $('#country').find(':selected').val(),
+                            }
+                            return query;
+                        },
+                        cache: false
+                    }
+                });
+                //city
+                $('.cityList').select2({
+                    ajax: {
+                        url: '{{route('ajaxCounterCity')}}',
+                        type: "GET",
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            var query = {
+                                search: params.term,
+                                page: params.page || 1,
+                                id: $('#state').find(':selected').val(),
                             }
                             return query;
                         },

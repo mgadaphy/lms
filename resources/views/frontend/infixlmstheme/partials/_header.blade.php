@@ -8,6 +8,7 @@
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}"/>
+    <meta name="_token" content="{{ csrf_token() }}"/>
     <link rel="icon" href="{{asset(Settings('favicon'))}}{{assetVersion()}}" type="image/png"/>
 
     <meta property="og:url" content="{{url()->current()}}"/>

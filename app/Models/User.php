@@ -3,6 +3,9 @@
 namespace App\Models;
 
 use App\Country;
+use App\Models\State;
+use App\Models\City;
+use App\Models\UserInfo;
 use Carbon\Carbon;
 use App\Traits\Tenantable;
 use App\Models\LmsInstitute;
@@ -242,6 +245,21 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Country::class, 'country')->withDefault();
     }
 
+    public function userState()
+    {
+        return $this->belongsTo(State::class, 'state')->withDefault();
+    }
+
+    public function userCity()
+    {
+        return $this->belongsTo(City::class, 'city')->withDefault();
+    }
+
+    public function userInfo()
+    {
+        return $this->hasOne(UserInfo::class, 'user_id');
+    }
+
     public function totalCourses()
     {
         $totalCourses = Course::where('user_id', '=', $this->id)->count();
@@ -302,12 +320,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function cityName()
     {
-        $find = DB::table('spn_cities')->where('id', $this->city)->first();
-        $city = '';
-        if ($find) {
-            $city = $find->name;
-        }
-        return $city;
+        return $this->userCity ? $this->userCity->name : '';
+    }
+
+    public function stateName()
+    {
+        return $this->userState ? $this->userState->name : '';
+    }
+
+    public function countryName()
+    {
+        return $this->userCountry ? $this->userCountry->name : '';
     }
 
     public function totalSellCourse()
