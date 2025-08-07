@@ -58,6 +58,75 @@
         .select2-container--default .select2-selection--single .select2-selection__arrow {
             height: 43px;
         }
+
+        /* Override all Select2 styling to match rounded pill design */
+        .select2-container .select2-selection--single {
+            height: 50px !important;
+            border: 1px solid #e4e6ea !important;
+            border-radius: 25px !important;
+            background-color: #fff !important;
+            padding: 0 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            box-shadow: none !important;
+        }
+
+        .select2-container .select2-selection__rendered {
+            color: #333 !important;
+            font-size: 14px !important;
+            line-height: 50px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 20px !important;
+        }
+
+        .select2-container .select2-selection__arrow {
+            height: 48px !important;
+            right: 15px !important;
+            top: 1px !important;
+            width: 20px !important;
+        }
+
+        .select2-container .select2-selection__arrow b {
+            border-color: #999 transparent transparent transparent !important;
+            border-style: solid !important;
+            border-width: 5px 4px 0 4px !important;
+            margin-top: -2px !important;
+            margin-left: -4px !important;
+        }
+
+        /* Focus and open states */
+        .select2-container.select2-container--open .select2-selection--single,
+        .select2-container.select2-container--focus .select2-selection--single {
+            border-color: #5D78FF !important;
+            box-shadow: 0 0 0 0.2rem rgba(93, 120, 255, 0.25) !important;
+        }
+
+        /* Ensure country dropdown also gets the styling */
+        #country {
+            height: 50px !important;
+            border-radius: 25px !important;
+            padding: 0 20px !important;
+        }
+
+        /* Dropdown menu styling */
+        .select2-dropdown {
+            border: 1px solid #e4e6ea !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            margin-top: 2px !important;
+        }
+
+        .select2-results__option {
+            padding: 10px 20px !important;
+            font-size: 14px !important;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #5D78FF !important;
+            color: white !important;
+        }
     </style>
 @endsection
 
@@ -90,15 +159,15 @@
 
 <div class="row">
                                 <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="gender">{{ __('Gender') }} <span class="text-danger">*</span></label>
-                                        <select name="gender" id="gender" class="form-control">
-                                            <option value="">{{ __('Select Gender') }}</option>
+                                    <div class="single_input">
+                                        <span class="primary_label2">{{ __('Gender') }} <span class="text-danger">*</span></span>
+                                        <select class="theme_select wide mb_20 rounded-pill" name="gender" id="gender">
+                                            <option data-display="{{ __('Select Gender') }}" value="">{{ __('Select Gender') }}</option>
                                             <option value="male" {{ old('gender', $user->gender) == 'male' ? 'selected' : '' }}>{{ __('Male') }}</option>
                                             <option value="female" {{ old('gender', $user->gender) == 'female' ? 'selected' : '' }}>{{ __('Female') }}</option>
                                             <option value="other" {{ old('gender', $user->gender) == 'other' ? 'selected' : '' }}>{{ __('Other') }}</option>
                                         </select>
-                                        <span class="invalid-feedback" id="gender-error"></span>
+                                        <span class="text-danger" role="alert" id="gender-error"></span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
@@ -145,47 +214,46 @@
 
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="country">{{ __('Country') }} <span class="text-danger">*</span></label>
-                                        <select name="country" id="country" class="form-control select2">
-                                            <option value="">{{ __('Select Country') }}</option>
+                                    <div class="single_input">
+                                        <span class="primary_label2">{{ __('Country') }} <span class="text-danger">*</span></span>
+                                        <select id="country" class="theme_select rounded-pill wide mb_20" name="country">
                                             @foreach($countries as $country)
                                                 <option value="{{ $country->id }}" {{ old('country', $user->country) == $country->id ? 'selected' : '' }}>
                                                     {{ $country->name }}
                                                 </option>
                                             @endforeach
                                         </select>
-                                        <span class="invalid-feedback" id="country-error"></span>
+                                        <span class="text-danger" role="alert" id="country-error"></span>
                                     </div>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="state">{{ __('State/Province') }} <span class="text-danger">*</span></label>
-                                        <select name="state" id="state" class="form-control stateList">
-                                            <option value="">{{ __('Select State/Province') }}</option>
+                                    <div class="single_input" id="state_div">
+                                        <span class="primary_label2">{{ __('State') }} <span class="text-danger">*</span></span>
+                                        <select class="wide rounded-pill mb_20 stateList" name="state" id="state">
+                                            <option data-display="{{ __('State') }}" value="#">{{ __('Select') }} {{ __('State') }}</option>
                                             @if(isset($states) && count($states) > 0)
                                                 @foreach($states as $state)
                                                     <option value="{{ $state->id }}" {{ old('state', $user->state) == $state->id ? 'selected' : '' }}>{{ $state->name }}</option>
                                                 @endforeach
                                             @endif
                                         </select>
-                                        <span class="invalid-feedback" id="state-error"></span>
+                                        <span class="text-danger" role="alert" id="state-error"></span>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="city">{{ __('City') }} <span class="text-danger">*</span></label>
-                                        <select name="city" id="city" class="form-control cityList">
-                                            <option value="">{{ __('Select City') }}</option>
+                                    <div class="single_input" id="city_div">
+                                        <span class="primary_label2">{{ __('City') }} <span class="text-danger">*</span></span>
+                                        <select class="rounded-pill wide mb_20 cityList" name="city" id="city">
+                                            <option data-display="{{ __('City') }}" value="#">{{ __('Select') }} {{ __('City') }}</option>
                                             @if(isset($cities) && count($cities) > 0)
                                                 @foreach($cities as $city)
                                                     <option value="{{ $city->id }}" {{ old('city', $user->city) == $city->id ? 'selected' : '' }}>{{ $city->name }}</option>
                                                 @endforeach
                                             @endif
                                         </select>
-                                        <span class="invalid-feedback" id="city-error"></span>
+                                        <span class="text-danger" role="alert" id="city-error"></span>
                                     </div>
                                 </div>
                             </div>
@@ -229,95 +297,175 @@
 @endsection
 
 @push('js')
+    <!-- Add CSS styling for Select2 dropdowns to match rounded pill design -->
+    <style>
+        /* Override all Select2 styling to match rounded pill design */
+        .select2-container .select2-selection--single {
+            height: 50px !important;
+            border: 1px solid #e4e6ea !important;
+            border-radius: 25px !important;
+            background-color: #fff !important;
+            padding: 0 20px !important;
+            display: flex !important;
+            align-items: center !important;
+            box-shadow: none !important;
+        }
+
+        .select2-container .select2-selection__rendered {
+            color: #333 !important;
+            font-size: 14px !important;
+            line-height: 50px !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            padding-left: 0 !important;
+            padding-right: 20px !important;
+        }
+
+        .select2-container .select2-selection__arrow {
+            height: 48px !important;
+            right: 15px !important;
+            top: 1px !important;
+            width: 20px !important;
+        }
+
+        .select2-container .select2-selection__arrow b {
+            border-color: #999 transparent transparent transparent !important;
+            border-style: solid !important;
+            border-width: 5px 4px 0 4px !important;
+            margin-top: -2px !important;
+            margin-left: -4px !important;
+        }
+
+        /* Focus and open states */
+        .select2-container.select2-container--open .select2-selection--single,
+        .select2-container.select2-container--focus .select2-selection--single {
+            border-color: #5D78FF !important;
+            box-shadow: 0 0 0 0.2rem rgba(93, 120, 255, 0.25) !important;
+        }
+
+        /* Ensure country dropdown also gets the styling */
+        #country {
+            height: 50px !important;
+            border-radius: 25px !important;
+            padding: 0 20px !important;
+        }
+
+        /* Dropdown menu styling */
+        .select2-dropdown {
+            border: 1px solid #e4e6ea !important;
+            border-radius: 8px !important;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+            margin-top: 2px !important;
+        }
+
+        .select2-results__option {
+            padding: 10px 20px !important;
+            font-size: 14px !important;
+        }
+
+        .select2-results__option--highlighted {
+            background-color: #5D78FF !important;
+            color: white !important;
+        }
+    </style>
+
+    <!-- Include the external JavaScript file that handles all profile completion logic -->
+    <script src="{{ asset('public/js/profile-completion.js') }}"></script>
     <script>
-        // AJAX CSRF setup
-        $.ajaxSetup({
-            headers: {
-                'X-CSRF-TOKEN': $('meta[name=_token]').attr('content')
-            }
-        });
-        
+        // Initialize Select2 for all dropdowns including state and city
         $(document).ready(function() {
-            // Initialize Select2 for dropdowns - using working implementation from user settings
-            
-            //city
-            $('.cityList').select2({
-                ajax: {
-                    url: '{{route('ajaxCounterCity')}}',
-                    type: "GET",
-                    dataType: 'json',
-                    delay: 250,
-                    data: function (params) {
-                        var query = {
-                            search: params.term,
-                            page: params.page || 1,
-                            id: $('#state').find(':selected').val(),
-                        }
-                        return query;
-                    },
-                    cache: false
-                }
+            // Initialize country dropdown (basic Select2)
+            $('#country').select2({
+                placeholder: "{{ __('Select Country') }}",
+                allowClear: false
             });
-            
-            //state
-            $('.stateList').select2({
+
+            // Initialize state dropdown with AJAX - EXPLICIT INITIALIZATION
+            $('#state').select2({
+                placeholder: "{{ __('Select State') }}",
+                allowClear: true,
                 ajax: {
-                    url: '{{route('ajaxCounterState')}}',
-                    type: "GET",
+                    url: '/ajaxCounterState',
+                    type: 'GET',
                     dataType: 'json',
                     delay: 250,
                     data: function (params) {
-                        var query = {
-                            search: params.term,
-                            page: params.page || 1,
-                            id: $('#country').find(':selected').val(),
+                        var countryId = $('#country').find(':selected').val();
+                        if (!countryId || countryId === '') {
+                            return null;
                         }
-                        return query;
+                        return {
+                            search: params.term || '',
+                            page: params.page || 1,
+                            id: countryId
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results || [],
+                            pagination: {
+                                more: data.pagination ? data.pagination.more : false
+                            }
+                        };
                     },
                     cache: false
                 }
             });
 
-            //onchange country
-            $(document).on('change', '#country', function () {
-                $('.stateList').val(null).trigger('change');
-                $('.cityList').val(null).trigger('change');
-            });
-
-            //onchange state
-            $(document).on('change', '.stateList', function () {
-                $('.cityList').val(null).trigger('change');
-            });
-            
-            // Initialize other Select2 dropdowns
-            $('.select2').select2();
-            
-            // Setup CSRF token for AJAX requests
-            $.ajaxSetup({
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            // Initialize city dropdown with AJAX - EXPLICIT INITIALIZATION
+            $('#city').select2({
+                placeholder: "{{ __('Select City') }}",
+                allowClear: true,
+                ajax: {
+                    url: '/ajaxCounterCity',
+                    type: 'GET',
+                    dataType: 'json',
+                    delay: 250,
+                    data: function (params) {
+                        var stateId = $('#state').find(':selected').val();
+                        if (!stateId || stateId === '' || stateId === '#') {
+                            return null;
+                        }
+                        return {
+                            search: params.term || '',
+                            page: params.page || 1,
+                            id: stateId
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.results || [],
+                            pagination: {
+                                more: data.pagination ? data.pagination.more : false
+                            }
+                        };
+                    },
+                    cache: false
                 }
             });
-            
+
+            // Initialize other Select2 dropdowns (timezone, etc.)
+            $('.select2').not('#country, #state, #city').select2();
+
             // Handle form submission
             $('#profile-completion-form').on('submit', function(e) {
                 e.preventDefault();
-                
+
                 const form = $(this);
                 const submitBtn = form.find('button[type="submit"]');
                 const originalText = submitBtn.text();
-                
+
                 // Clear previous errors
                 $('.invalid-feedback').remove();
                 $('.is-invalid').removeClass('is-invalid');
                 $('.alert').remove();
-                
+
                 // Show loading state
                 submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Updating Profile...');
-                
+
                 // Prepare form data
                 const formData = new FormData(form[0]);
-                
+
                 // Make AJAX request
                 $.ajax({
                     url: form.attr('action'),
@@ -336,7 +484,7 @@
                                 </div>
                             `;
                             form.prepend(alert);
-                            
+
                             // Redirect after a short delay if profile is complete
                             if (response.is_complete && response.redirect_url) {
                                 setTimeout(function() {
@@ -353,28 +501,28 @@
                             `;
                             form.prepend(alert);
                         }
-                        
+
                         // Reset button
                         submitBtn.prop('disabled', false).text(originalText);
-                        
+
                         // Scroll to top
                         $('html, body').animate({ scrollTop: 0 }, 300);
                     },
                     error: function(xhr) {
                         // Reset button
                         submitBtn.prop('disabled', false).text(originalText);
-                        
+
                         if (xhr.status === 422) {
                             // Handle validation errors
                             const errors = xhr.responseJSON.errors;
                             Object.keys(errors).forEach(function(field) {
                                 const input = $(`[name="${field}"]`);
                                 const errorMessage = errors[field][0];
-                                
+
                                 input.addClass('is-invalid');
                                 input.after(`<div class="invalid-feedback">${errorMessage}</div>`);
                             });
-                            
+
                             // Show general error message
                             const alert = `
                                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -393,7 +541,7 @@
                             `;
                             form.prepend(alert);
                         }
-                        
+
                         // Scroll to top
                         $('html, body').animate({ scrollTop: 0 }, 300);
                     }

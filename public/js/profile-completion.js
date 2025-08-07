@@ -4,13 +4,13 @@
  */
 
 $(document).ready(function() {
-    // Setup CSRF token for AJAX requests
+    // Setup CSRF token for AJAX requests - use the correct meta tag
     $.ajaxSetup({
         headers: {
-            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
         }
     });
-    
+
     // Initialize form functionality
     initializeProfileForm();
 });
@@ -20,7 +20,7 @@ function initializeProfileForm() {
     $('#country').on('change', function() {
         const countryId = $(this).val();
         const currentStateId = $('#state').val();
-        
+
         if (countryId) {
             loadStates(countryId);
             // Clear dependent dropdowns only if country actually changed
@@ -37,7 +37,7 @@ function initializeProfileForm() {
     $('#state').on('change', function() {
         const stateId = $(this).val();
         const currentCityId = $('#city').val();
-        
+
         if (stateId) {
             loadCities(stateId);
             // Clear city dropdown only if state actually changed
@@ -61,16 +61,20 @@ function initializeProfileForm() {
 function loadStates(countryId) {
     const stateSelect = $('#state');
     const citySelect = $('#city');
-    
+
     // Show loading state
     stateSelect.prop('disabled', true).html('<option value="">Loading states...</option>');
     citySelect.prop('disabled', true).html('<option value="">Select City</option>');
-    
-    // Make AJAX request
+
+    // Make AJAX request to working route
     $.ajax({
-        url: window.profileRoutes.getStates,
+        url: '/ajaxCounterState', // Use the working route directly
         type: 'GET',
-        data: { id: countryId },
+        data: {
+            id: countryId,
+            search: '',
+            page: 1
+        },
         dataType: 'json',
         success: function(response) {
             populateDropdown(stateSelect, response, 'Select State');
@@ -80,10 +84,10 @@ function loadStates(countryId) {
         error: function(xhr, status, error) {
             console.error('Error loading states:', error, xhr.responseText);
             handleDropdownError(stateSelect, 'Error loading states');
-            
+
             // Show user-friendly error message
             showErrorMessage('Unable to load states. Please try again.');
-            
+
             // Try fallback if available
             tryFallbackStates(countryId);
         }
@@ -92,15 +96,19 @@ function loadStates(countryId) {
 
 function loadCities(stateId) {
     const citySelect = $('#city');
-    
+
     // Show loading state
     citySelect.prop('disabled', true).html('<option value="">Loading cities...</option>');
-    
-    // Make AJAX request
+
+    // Make AJAX request to working route
     $.ajax({
-        url: window.profileRoutes.getCities,
+        url: '/ajaxCounterCity', // Use the working route directly
         type: 'GET',
-        data: { id: stateId },
+        data: {
+            id: stateId,
+            search: '',
+            page: 1
+        },
         dataType: 'json',
         success: function(response) {
             populateDropdown(citySelect, response, 'Select City');
@@ -110,10 +118,10 @@ function loadCities(stateId) {
         error: function(xhr, status, error) {
             console.error('Error loading cities:', error, xhr.responseText);
             handleDropdownError(citySelect, 'Error loading cities');
-            
+
             // Show user-friendly error message
             showErrorMessage('Unable to load cities. Please try again.');
-            
+
             // Try fallback if available
             tryFallbackCities(stateId);
         }
@@ -157,10 +165,10 @@ function tryFallbackCities(stateId) {
 function populateDropdown(selectElement, response, placeholder) {
     selectElement.empty();
     selectElement.append(`<option value="">${placeholder}</option>`);
-    
+
     // Handle both Select2 format (with 'results') and direct array format
     const data = response.results || response;
-    
+
     if (data && data.length > 0) {
         data.forEach(function(item) {
             // Handle both 'text' and 'name' properties
@@ -187,23 +195,23 @@ function submitProfileForm() {
     const form = $('#profile-completion-form');
     const submitBtn = form.find('button[type="submit"]');
     const originalText = submitBtn.text();
-    
+
     // Clear previous validation errors
     $('.invalid-feedback').remove();
     $('.is-invalid').removeClass('is-invalid');
-    
+
     // Validate dependent dropdowns
     if (!validateDependentDropdowns()) {
         showErrorMessage('Please ensure country, state, and city selections are valid.');
         return;
     }
-    
+
     // Show loading state
     submitBtn.prop('disabled', true).text('Updating Profile...');
-    
+
     // Prepare form data
     const formData = new FormData(form[0]);
-    
+
     // Make AJAX request
     $.ajax({
         url: form.attr('action'),
@@ -226,7 +234,7 @@ function submitProfileForm() {
         },
         error: function(xhr) {
             resetSubmitButton(submitBtn, originalText);
-            
+
             if (xhr.status === 422) {
                 // Handle validation errors
                 const errors = xhr.responseJSON.errors;
@@ -246,7 +254,7 @@ function resetSubmitButton(button, originalText) {
 function showSuccessMessage(message) {
     // Remove existing alerts
     $('.alert').remove();
-    
+
     // Add success alert
     const alert = `
         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -254,9 +262,9 @@ function showSuccessMessage(message) {
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     `;
-    
+
     $('#profileForm').prepend(alert);
-    
+
     // Scroll to top
     $('html, body').animate({ scrollTop: 0 }, 300);
 }
@@ -264,7 +272,7 @@ function showSuccessMessage(message) {
 function showErrorMessage(message) {
     // Remove existing alerts
     $('.alert').remove();
-    
+
     // Add error alert
     const alert = `
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -272,9 +280,9 @@ function showErrorMessage(message) {
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     `;
-    
+
     $('#profileForm').prepend(alert);
-    
+
     // Scroll to top
     $('html, body').animate({ scrollTop: 0 }, 300);
 }
@@ -283,16 +291,16 @@ function displayValidationErrors(errors) {
     // Clear previous error messages
     $('.invalid-feedback').remove();
     $('.is-invalid').removeClass('is-invalid');
-    
+
     // Display new errors
     Object.keys(errors).forEach(function(field) {
         const input = $(`[name="${field}"]`);
         const errorMessage = errors[field][0];
-        
+
         input.addClass('is-invalid');
         input.after(`<div class="invalid-feedback">${errorMessage}</div>`);
     });
-    
+
     // Show general error message
     showErrorMessage('Please correct the errors below and try again.');
 }
@@ -301,21 +309,21 @@ function validateDependentDropdowns() {
     const country = $('#country').val();
     const state = $('#state').val();
     const city = $('#city').val();
-    
+
     // If country is selected, state must be selected
     if (country && !state) {
         $('#state').addClass('is-invalid');
         $('#state').after('<div class="invalid-feedback">Please select a state for the chosen country.</div>');
         return false;
     }
-    
+
     // If state is selected, city must be selected
     if (state && !city) {
         $('#city').addClass('is-invalid');
         $('#city').after('<div class="invalid-feedback">Please select a city for the chosen state.</div>');
         return false;
     }
-    
+
     // If city is selected, both country and state must be selected
     if (city && (!country || !state)) {
         if (!country) {
@@ -328,6 +336,6 @@ function validateDependentDropdowns() {
         }
         return false;
     }
-    
+
     return true;
 }
