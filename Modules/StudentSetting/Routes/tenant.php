@@ -10,6 +10,7 @@ Route::group(['prefix' => 'admin/student', 'middleware' => ['auth', 'admin']], f
     Route::get('/show/{id}', 'StudentSettingController@show')->name('student.show')->middleware('RoutePermissionCheck:student.student_list');
     Route::get('/edit/{id}', 'StudentSettingController@edit')->name('student.edit')->middleware('RoutePermissionCheck:student.edit');
     Route::post('/update', 'StudentSettingController@update')->name('student.update')->middleware('RoutePermissionCheck:student.edit');
+    Route::post('/verify-email/{id}', 'StudentSettingController@verifyEmail')->name('student.verify_email')->middleware('RoutePermissionCheck:student.edit');
     Route::post('/destroy', 'StudentSettingController@destroy')->name('student.delete')->middleware('RoutePermissionCheck:student.delete');
 
 

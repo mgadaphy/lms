@@ -858,4 +858,40 @@ class StudentSettingController extends Controller
 
         }
     }
+
+    /**
+     * Verify student email manually by admin
+     * Copies the automatic verification functionality used when creating students
+     */
+    public function verifyEmail(Request $request, $id)
+    {
+        try {
+            $student = User::where('id', $id)
+                ->where('role_id', 3) // Ensure it's a student
+                ->first();
+
+            if (!$student) {
+                Toastr::error('Student not found', 'Error');
+                return redirect()->back();
+            }
+
+            if ($student->email_verified_at) {
+                Toastr::info('Student email is already verified', 'Info');
+                return redirect()->back();
+            }
+
+            // Copy the automatic verification logic from store method (lines 160-161)
+            $student->email_verify = 1;
+            $student->email_verified_at = now();
+            $student->save();
+
+            Toastr::success('Student email verified successfully', 'Success');
+            return redirect()->back();
+
+        } catch (Exception $e) {
+            Toastr::error('Failed to verify email: ' . $e->getMessage(), 'Error');
+            GettingError($e->getMessage(), url()->current(), request()->ip(), request()->userAgent());
+            return redirect()->back();
+        }
+    }
 }

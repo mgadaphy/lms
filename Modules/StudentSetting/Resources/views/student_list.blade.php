@@ -56,6 +56,7 @@
                                             <th scope="col">{{__('common.Date of Birth')}}</th>
                                             <th scope="col">{{__('common.Country')}}</th>
                                             <th scope="col">{{__('common.Status')}}</th>
+                                            <th scope="col">{{__('Email Verification')}}</th>
                                             <th scope="col">{{__('common.Action')}}</th>
                                         </tr>
                                         </thead>
@@ -142,11 +143,36 @@
             {data: 'dob', name: 'dob'},
             {data: 'country', name: 'country'},
             {data: 'status', name: 'status', orderable: false},
+            // {data: 'email_verification', name: 'email_verification', orderable: false}, // TODO: Add data provider support
             {data: 'action', name: 'action', orderable: false},
         ];
 
         dataTableOptions = updateColumnExportOption(dataTableOptions, [0, 2, 3, 4, 5, 6, 7, 8]);
         // dataTableOptions = updateColumnExportOption(dataTableOptions, ':visible');
+        
+        // Handle email verification button clicks
+        $(document).on('click', '.verify-email-btn', function(e) {
+            e.preventDefault();
+            
+            const studentId = $(this).data('id');
+            const studentEmail = $(this).data('email');
+            const button = $(this);
+            
+            if (confirm(`Are you sure you want to verify the email for ${studentEmail}?`)) {
+                // Show loading state
+                button.html('<i class="fas fa-spinner fa-spin"></i> Verifying...');
+                button.prop('disabled', true);
+                
+                // Create form and submit
+                const form = $('<form>', {
+                    method: 'POST',
+                    action: '{{ route('student.verify_email', ':id') }}'.replace(':id', studentId)
+                });
+                
+                form.append('@csrf');
+                form.appendTo('body').submit();
+            }
+        });
         let table = $('#lms_table').DataTable(dataTableOptions);
 
 

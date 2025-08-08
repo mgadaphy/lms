@@ -12,6 +12,16 @@
                type="button">{{trans('common.Secret Login') }}</a>
         @endif
 
+        @if (permissionCheck('student.edit') && !$query->email_verified_at)
+            <a class="dropdown-item verify-email-btn" 
+               href="javascript:void(0)" 
+               data-id="{{$query->id}}"
+               data-email="{{$query->email}}"
+               type="button">
+                <i class="fas fa-envelope-check"></i> {{__('Verify Email')}}
+            </a>
+        @endif
+
         <a class="dropdown-item"
            href="{{route('student.show', $query->id)}}">
             {{trans('common.Show') }}</a>
